@@ -4,267 +4,241 @@
 
 ## Stručný popis témy
 
-Food Rescue Platform je informačný systém zameraný na znižovanie plytvania potravinami prostredníctvom evidencie, publikovania, vyhľadávania a rezervácie prebytočných potravín z reštaurácií, kaviarní a obchodov. Prevádzky môžu vytvárať ponuky potravín určených na vyzdvihnutie v definovanom čase a na definovanom mieste. Registrovaní používatelia môžu tieto ponuky vyhľadávať, rezervovať a sledovať stav svojich rezervácií. Systém zároveň zabezpečuje správu životného cyklu ponúk a rezervácií, notifikácie o dôležitých zmenách a základnú administráciu používateľov a obsahu.
+Food Rescue Platform je informačný systém zameraný na znižovanie plytvania potravinami prostredníctvom evidencie, publikovania, vyhľadávania a rezervácie prebytočných potravín z reštaurácií, kaviarní a obchodov. Registrovaní používatelia môžu vyhľadávať dostupné ponuky, rezervovať ich a sledovať stav svojich rezervácií. Používateľ môže zároveň vytvoriť a spravovať jednu alebo viac prevádzok, prostredníctvom ktorých publikuje ponuky potravín určených na vyzdvihnutie v definovanom čase a na definovanom mieste. Systém zároveň zabezpečuje správu životného cyklu ponúk a rezervácií, notifikácie o dôležitých zmenách a základnú administráciu používateľov a obsahu.
 
-## Zoznam požiadaviek (Use Cases / Requirements)
+## Zoznam požiadaviek
 
 | ID | Požiadavka |
 |----|------------|
-| RQ01 | Systém umožní registráciu používateľa alebo prevádzky do systému. |
+| RQ01 | Systém umožní registráciu používateľa do systému. |
 | RQ02 | Systém umožní prihlásenie používateľa do systému. |
-| RQ03 | Systém umožní prevádzke vytvoriť a zverejniť ponuku prebytočných potravín. |
-| RQ04 | Systém umožní prevádzke upraviť vlastnú ponuku. |
-| RQ05 | Systém umožní prevádzke zrušiť vlastnú ponuku. |
-| RQ06 | Systém umožní používateľovi vyhľadávať dostupné ponuky podľa zvolených kritérií. |
-| RQ07 | Systém umožní používateľovi rezervovať dostupnú ponuku. |
-| RQ08 | Systém umožní používateľovi zrušiť aktívnu rezerváciu pred koncom času vyzdvihnutia. |
-| RQ09 | Systém bude evidovať miesto a čas vyzdvihnutia ku každej ponuke. |
-| RQ10 | Systém umožní prevádzke potvrdiť vyzdvihnutie rezervovanej ponuky. |
-| RQ11 | Systém umožní používateľovi zobraziť históriu svojich rezervácií. |
-| RQ12 | Systém upozorní používateľa na zmenu stavu rezervácie alebo ponuky. |
-| RQ13 | Systém umožní prevádzke označiť ponuku ako vypredanú alebo nedostupnú pred koncom časového okna. |
-| RQ14 | Systém umožní administrátorovi spravovať používateľov. |
-| RQ15 | Systém umožní administrátorovi spravovať ponuky. |
-| RQ16 | Systém umožní administrátorovi zablokovať konto používateľa pri porušení pravidiel. |
+| RQ03 | Systém umožní používateľovi vytvoriť prevádzku (`Business`). |
+| RQ04 | Systém umožní administrátorovi schváliť alebo zamietnuť prevádzku. |
+| RQ05 | Systém umožní prevádzke vytvoriť a zverejniť ponuku prebytočných potravín. |
+| RQ06 | Systém umožní prevádzke upraviť vlastnú ponuku. |
+| RQ07 | Systém umožní prevádzke zrušiť vlastnú ponuku. |
+| RQ08 | Systém umožní používateľovi vyhľadávať dostupné ponuky. |
+| RQ09 | Systém umožní používateľovi rezervovať dostupnú ponuku. |
+| RQ10 | Systém umožní používateľovi zrušiť rezerváciu pred koncom času vyzdvihnutia. |
+| RQ11 | Systém bude evidovať miesto a čas vyzdvihnutia ku každej ponuke. |
+| RQ12 | Systém umožní prevádzke potvrdiť vyzdvihnutie rezervovanej ponuky. |
+| RQ13 | Systém umožní používateľovi zobraziť históriu rezervácií. |
+| RQ14 | Systém upozorní používateľa na zmenu stavu rezervácie, ponuky alebo prevádzky. |
+| RQ15 | Systém umožní prevádzke označiť ponuku ako vypredanú alebo nedostupnú. |
+| RQ16 | Systém umožní administrátorovi spravovať používateľov. |
+| RQ17 | Systém umožní administrátorovi spravovať prevádzky a ponuky. |
+| RQ18 | Systém umožní administrátorovi zablokovať používateľa. |
+
+---
 
 ## Slovník pojmov
 
 | **Pojem** | **Anglický názov** | **Definícia** |
 |-----------|--------------------|---------------|
-| **Používateľ** | User | Registrovaný používateľ systému, ktorý môže vyhľadávať a rezervovať ponuky prebytočných potravín. |
-| **Prevádzka** | Seller | Registrovaný subjekt (reštaurácia, obchod, kaviareň), ktorý publikuje ponuky prebytočných potravín. |
-| **Administrátor** | Administrator | Používateľ s rozšírenými oprávneniami na správu používateľov, ponúk a dohľad nad systémom. |
-| **Konto** | Account | Identita používateľa v systéme obsahujúca prihlasovacie údaje, profilové údaje a stav konta. |
-| **Rola** | Role | Typ oprávnenia používateľa v systéme. Nadobúda hodnoty `USER`, `SELLER`, `ADMIN`. |
-| **Stav konta** | AccountStatus | Stav konta v systéme. Nadobúda hodnoty napr. `ACTIVE`, `BLOCKED`, `DELETED`. |
-| **Ponuka** | Offer | Záznam o dostupných prebytočných potravinách určených na rezerváciu a vyzdvihnutie. |
-| **Položka ponuky** | OfferItem | Jednotlivá položka tvoriaca obsah ponuky, napr. typ jedla alebo balíčka a jeho množstvo. |
+| **Používateľ** | User | Registrovaný používateľ systému, ktorý môže vyhľadávať a rezervovať ponuky. Zároveň môže vytvoriť a spravovať prevádzky. |
+| **Prevádzka** | Business | Subjekt reprezentujúci reštauráciu, obchod alebo kaviareň. Vždy patrí konkrétnemu používateľovi a nemôže existovať samostatne. |
+| **Stav prevádzky** | BusinessStatus | Stav prevádzky (`PENDING`, `ACTIVE`, `BLOCKED`, `REJECTED`). |
+| **Administrátor** | Administrator | Používateľ s oprávneniami na správu systému. |
+| **Rola** | Role | Typ oprávnenia (`USER`, `ADMIN`). |
+| **Stav používateľa** | UserStatus | Stav používateľa (`ACTIVE`, `BLOCKED`, `DELETED`). |
+| **Adresa** | Address | Hodnotový objekt reprezentujúci adresu. |
+| **Ponuka** | Offer | Záznam o dostupných potravinách na rezerváciu. |
+| **Položka ponuky** | OfferItem | Jednotlivá položka ponuky. |
 | **Stav ponuky** | OfferStatus | Stav ponuky v systéme. Nadobúda hodnoty `DRAFT`, `AVAILABLE`, `RESERVED`, `PICKED_UP`, `SOLD_OUT`, `EXPIRED`, `CANCELLED`. |
-| **Rezervácia** | Reservation | Záznam o rezervovaní konkrétnej ponuky konkrétnym používateľom. |
+| **Rezervácia** | Reservation | Záznam o rezervovaní ponuky používateľom. |
 | **Stav rezervácie** | ReservationStatus | Stav rezervácie v systéme. Nadobúda hodnoty `ACTIVE`, `CANCELLED`, `PICKED_UP`, `NO_SHOW`. |
-| **Miesto vyzdvihnutia** | PickupLocation | Miesto alebo adresa, na ktorej si používateľ rezervovanú ponuku vyzdvihne. |
-| **Čas vyzdvihnutia** | PickupTimeWindow | Časový interval, počas ktorého je možné ponuku vyzdvihnúť. |
-| **Potvrdenie vyzdvihnutia** | PickupConfirmation | Záznam o tom, že prevádzka potvrdila úspešné prevzatie rezervovanej ponuky používateľom. |
-| **Notifikácia** | Notification | Správa doručená používateľovi pri významnej zmene stavu ponuky alebo rezervácie. |
+| **Miesto vyzdvihnutia** | PickupLocation | Miesto vyzdvihnutia ponuky (môže sa líšiť od adresy prevádzky). |
+| **Čas vyzdvihnutia** | PickupTimeWindow | Časový interval vyzdvihnutia. |
+| **Potvrdenie vyzdvihnutia** | PickupConfirmation | Potvrdenie úspešného vyzdvihnutia. |
+| **Notifikácia** | Notification | Správa doručená používateľovi pri zmene stavu ponuky, rezervácie alebo prevádzky. |
+
+---
 
 ## Zoznam prípadov použitia
 
-- **UC-01-001** Registrácia používateľa
-- **UC-02-001** Prihlásenie používateľa
-- **UC-03-001** Vytvorenie a zverejnenie ponuky
-- **UC-04-001** Úprava vlastnej ponuky
-- **UC-05-001** Zrušenie vlastnej ponuky
-- **UC-06-001** Vyhľadávanie dostupných ponúk
-- **UC-07-001** Rezervácia ponuky
-- **UC-08-001** Zrušenie rezervácie
-- **UC-09-001** Potvrdenie vyzdvihnutia
-- **UC-10-001** Zobrazenie histórie rezervácií
-- **UC-11-001** Notifikácia o zmene stavu
-- **UC-12-001** Označenie ponuky ako vypredanej
-- **UC-13-001** Správa používateľov administrátorom
-- **UC-14-001** Správa ponúk administrátorom
-- **UC-15-001** Zablokovanie konta používateľa
+- UC-01 Registrácia používateľa  
+- UC-02 Prihlásenie používateľa  
+- UC-03 Vytvorenie prevádzky  
+- UC-04 Schválenie prevádzky  
+- UC-05 Vytvorenie ponuky  
+- UC-06 Úprava ponuky  
+- UC-07 Zrušenie ponuky  
+- UC-08 Vyhľadávanie ponúk  
+- UC-09 Rezervácia ponuky  
+- UC-10 Zrušenie rezervácie  
+- UC-11 Potvrdenie vyzdvihnutia  
+- UC-12 História rezervácií  
+- UC-13 Notifikácie  
+- UC-14 Označenie ako vypredané  
+- UC-15 Správa používateľov
+- UC-16 Správa prevádzok a ponúk
+- UC-17 Zablokovanie používateľa
 
-## Prípady použitia
+---
 
-### UC-01-001 Registrácia používateľa
+## Detailne rozpracované prípady použitia
 
-#### Účel
-Založiť nové konto v systéme pre používateľa alebo prevádzku.
-
-#### Používateľ
-Návštevník systému.
-
-#### Vstupné podmienky
-Používateľ nie je prihlásený a ešte nemá vytvorené konto s daným e-mailom.
-
-#### Výstup
-V systéme pribudlo nové konto s rolou `USER` alebo `SELLER` a stavom `ACTIVE`.
-
-#### Postup
-1. Používateľ otvorí registračný formulár.
-2. Používateľ zadá meno, e-mail, heslo a zvolí rolu.
-3. Systém overí povinné údaje, formát e-mailu a silu hesla.
-4. Systém overí, či konto s daným e-mailom ešte neexistuje.
-5. Systém vytvorí nové konto a uloží čas registrácie.
-6. Systém zobrazí potvrdenie o úspešnej registrácii.
-
-#### Alternatívy
-**3a. Používateľ nevyplní povinné údaje alebo zadá neplatný formát.**  
-3a1. Systém zvýrazní chybné polia a nedovolí odoslať formulár.
-
-**4a. Konto s daným e-mailom už existuje.**  
-4a1. Systém registráciu zamietne a zobrazí správu: „Účet s týmto e-mailom už existuje.“
-
-### UC-03-001 Vytvorenie a zverejnenie ponuky
+### UC-03-001 Vytvorenie prevádzky
 
 #### Účel
-Umožniť prevádzke publikovať ponuku prebytočných potravín na rezerváciu.
+Vytvoriť novú prevádzku, prostredníctvom ktorej bude môcť používateľ po schválení publikovať ponuky prebytočných potravín.
 
 #### Používateľ
-Prevádzka (`SELLER`).
+Používateľ.
 
 #### Vstupné podmienky
-Používateľ je prihlásený a má rolu `SELLER`.
+Používateľ je prihlásený do systému a má aktívny účet.
 
 #### Výstup
-V systéme pribudla nová ponuka v stave `AVAILABLE`, viditeľná vo vyhľadávaní.
+V systéme pribudla nová prevádzka priradená danému používateľovi. Prevádzka má stav `PENDING`.
 
 #### Postup
-1. Prevádzka otvorí formulár „Nová ponuka“.
-2. Prevádzka zadá názov ponuky, popis a položky ponuky.
-3. Prevádzka zadá miesto vyzdvihnutia a časové okno vyzdvihnutia.
-4. Systém overí povinné údaje a platnosť časového okna.
-5. Systém uloží ponuku so stavom `AVAILABLE`.
-6. Systém zobrazí ponuku medzi dostupnými ponukami.
-
-#### Alternatívy
-**2a. Prevádzka nevyplní povinné údaje.**  
-2a1. Systém vypíše validačné chyby a uloženie nepovolí.
-
-**4a. Čas vyzdvihnutia je neplatný.**  
-4a1. Systém upozorní na chybný interval a vyžiada opravu.
-
-**4b. Používateľ nemá rolu `SELLER`.**  
-4b1. Systém akciu zamietne z dôvodu nedostatočných oprávnení.
-
-### UC-07-001 Rezervácia ponuky
-
-#### Účel
-Umožniť používateľovi rezervovať dostupnú ponuku.
-
-#### Používateľ
-Používateľ (`USER`).
-
-#### Vstupné podmienky
-Používateľ je prihlásený. Ponuka existuje a je v stave `AVAILABLE`.
-
-#### Výstup
-V systéme vznikla nová rezervácia v stave `ACTIVE` a ponuka prešla do stavu `RESERVED`.
-
-#### Postup
-1. Používateľ otvorí detail ponuky.
-2. Systém zobrazí detaily ponuky vrátane miesta a času vyzdvihnutia.
-3. Používateľ zvolí možnosť „Rezervovať“.
-4. Systém overí, že ponuka je stále dostupná.
-5. Systém vytvorí rezerváciu v stave `ACTIVE`.
-6. Systém aktualizuje stav ponuky na `RESERVED`.
-7. Systém zobrazí potvrdenie o úspešnej rezervácii.
-8. Systém odošle notifikáciu používateľovi a prevádzke.
+1. Používateľ otvorí formulár na vytvorenie prevádzky.
+2. Systém zobrazí formulár na zadanie údajov o prevádzke.
+3. Používateľ zadá názov prevádzky, popis a adresu prevádzky.
+4. Používateľ zvolí uloženie prevádzky.
+5. Systém overí povinné údaje a správnosť zadaných hodnôt.
+6. Systém vytvorí novú prevádzku, priradí ju prihlásenému používateľovi a nastaví jej stav `PENDING`.
+7. Systém zobrazí potvrdenie o úspešnom vytvorení prevádzky.
+8. Systém informuje používateľa, že prevádzka musí byť schválená administrátorom pred publikovaním ponúk.
 
 #### Alternatívy
 
-**1a. Používateľ nie je prihlásený.**  
-1a1. Systém vyžiada prihlásenie používateľa.
+- `1a.` Používateľ nie je prihlásený do systému.
+  - `1a1.` Systém nepovolí vytvorenie prevádzky.
+  - `1a2.` Systém vyžiada prihlásenie používateľa.
 
-**4a. Ponuka už nie je dostupná.**  
-4a1. Systém rezerváciu nevytvorí a zobrazí správu o nedostupnosti ponuky.
+- `5a.` Používateľ nevyplní povinný údaj.
+  - `5a1.` Systém informuje používateľa o chýbajúcich povinných údajoch.
+  - `5a2.` Systém nepovolí vytvorenie prevádzky.
 
-### UC-08-001 Zrušenie rezervácie
+- `5b.` Používateľ zadá neplatné údaje adresy.
+  - `5b1.` Systém informuje používateľa o nesprávne zadaných údajoch adresy.
+  - `5b2.` Systém vyžiada opravu údajov.
+
+- `5c.` Používateľ už má prevádzku s rovnakým názvom.
+  - `5c1.` Systém informuje používateľa, že prevádzka s daným názvom už existuje.
+  - `5c2.` Systém nepovolí vytvorenie prevádzky.
+
+---
+
+### UC-05-001 Vytvorenie a zverejnenie ponuky
 
 #### Účel
-Umožniť používateľovi zrušiť aktívnu rezerváciu pred koncom časového okna vyzdvihnutia.
+Vytvoriť a zverejniť novú ponuku prebytočných potravín patriacu do konkrétnej prevádzky.
 
 #### Používateľ
-Používateľ (`USER`).
+Používateľ – vlastník prevádzky.
 
 #### Vstupné podmienky
-Používateľ je prihlásený a vlastní rezerváciu v stave `ACTIVE`.
+Používateľ je prihlásený do systému. Používateľ vlastní konkrétnu prevádzku a táto prevádzka má stav `ACTIVE`.
 
 #### Výstup
-Rezervácia je v stave `CANCELLED` a ponuka je opäť dostupná, ak to obchodné pravidlá umožňujú.
+V systéme pribudla nová ponuka v stave `AVAILABLE`, priradená ku konkrétnej prevádzke a viditeľná vo vyhľadávaní.
 
 #### Postup
-1. Používateľ otvorí zoznam svojich rezervácií.
-2. Používateľ vyberie aktívnu rezerváciu.
-3. Používateľ zvolí možnosť „Zrušiť rezerváciu“.
-4. Systém overí, či ešte neuplynul koniec času vyzdvihnutia.
-5. Systém nastaví stav rezervácie na `CANCELLED`.
-6. Systém aktualizuje stav ponuky na `AVAILABLE`, ak ponuka nebola medzičasom ukončená alebo zrušená.
-7. Systém odošle notifikáciu prevádzke a používateľovi.
+1. Používateľ otvorí detail svojej prevádzky.
+2. Systém zobrazí údaje o prevádzke a dostupné akcie.
+3. Používateľ zvolí možnosť vytvoriť novú ponuku.
+4. Systém zobrazí formulár na zadanie údajov o ponuke.
+5. Používateľ zadá názov ponuky, popis, položky ponuky, miesto vyzdvihnutia a časové okno vyzdvihnutia.
+6. Používateľ zvolí uloženie ponuky.
+7. Systém overí povinné údaje, platnosť časového okna a správnosť zadaného miesta vyzdvihnutia.
+8. Systém vytvorí novú ponuku v stave `AVAILABLE` a priradí ju danej prevádzke.
+9. Systém zobrazí potvrdenie o úspešnom vytvorení ponuky.
+10. Systém zaradí ponuku medzi dostupné ponuky vo vyhľadávaní.
 
 #### Alternatívy
 
-**2a. Používateľ sa pokúsi zrušiť cudziu rezerváciu.**  
-2a1. Systém akciu zamietne z dôvodu nedostatočných oprávnení.
+- `1a.` Používateľ sa pokúsi vytvoriť ponuku pre prevádzku, ktorú nevlastní.
+  - `1a1.` Systém akciu zamietne z dôvodu nedostatočných oprávnení.
 
-**4a. Čas vyzdvihnutia už uplynul.**  
-4a1. Systém zrušenie rezervácie nepovolí.
+- `3a.` Prevádzka používateľa nie je v stave `ACTIVE`.
+  - `3a1.` Systém nepovolí vytvorenie ponuky.
+  - `3a2.` Systém informuje používateľa, že prevádzka ešte nebola schválená alebo je blokovaná.
 
-### UC-09-001 Potvrdenie vyzdvihnutia
+- `5a.` Používateľ nevyplní povinné údaje ponuky.
+  - `5a1.` Systém vypíše validačné chyby.
+  - `5a2.` Systém nepovolí uloženie ponuky.
 
-#### Účel
-Umožniť prevádzke potvrdiť odovzdanie rezervovanej ponuky používateľovi.
+- `7a.` Čas vyzdvihnutia je neplatný.
+  - `7a1.` Systém informuje používateľa o neplatnom časovom intervale.
+  - `7a2.` Systém vyžiada opravu údajov.
 
-#### Používateľ
-Prevádzka (`SELLER`).
+- `7b.` Miesto vyzdvihnutia nie je zadané správne.
+  - `7b1.` Systém informuje používateľa o nesprávnych údajoch miesta vyzdvihnutia.
+  - `7b2.` Systém vyžiada opravu údajov.
 
-#### Vstupné podmienky
-Existuje rezervácia v stave `ACTIVE`, viazaná na ponuku patriacu danej prevádzke.
+---
 
-#### Výstup
-Rezervácia prejde do stavu `PICKED_UP`, ponuka prejde do stavu `PICKED_UP` a vznikne záznam o potvrdení vyzdvihnutia.
-
-#### Postup
-1. Prevádzka otvorí detail rezervácie alebo detail ponuky.
-2. Systém zobrazí údaje o rezervácii a používateľovi.
-3. Prevádzka zvolí možnosť „Potvrdiť vyzdvihnutie“.
-4. Systém overí, že rezervácia je v stave `ACTIVE`.
-5. Systém vytvorí záznam `PickupConfirmation`.
-6. Systém nastaví stav rezervácie na `PICKED_UP`.
-7. Systém nastaví stav ponuky na `PICKED_UP`.
-8. Systém odošle notifikáciu používateľovi.
-
-#### Alternatívy
-**1a. Prevádzka sa pokúsi potvrdiť cudziu rezerváciu.**  
-1a1. Systém akciu zamietne z dôvodu nedostatočných oprávnení.
-
-**4a. Rezervácia už nie je aktívna.**  
-4a1. Systém potvrdenie nepovolí.
-
-### UC-15-001 Zablokovanie konta používateľa
+### UC-09-001 Rezervácia ponuky
 
 #### Účel
-Umožniť administrátorovi zablokovať konto používateľa pri porušení pravidiel.
+Rezervovať dostupnú ponuku prebytočných potravín na vyzdvihnutie.
 
 #### Používateľ
-Administrátor (`ADMIN`).
+Používateľ.
 
 #### Vstupné podmienky
-Administrátor je prihlásený. Konto používateľa existuje a nie je už blokované.
+Používateľ je prihlásený do systému. Vybraná ponuka existuje a je v stave `AVAILABLE`.
 
 #### Výstup
-Konto používateľa má stav `BLOCKED`.
+V systéme pribudla nová rezervácia v stave `ACTIVE`. Stav ponuky sa zmenil na `RESERVED`. Používateľ a vlastník prevádzky boli informovaní o zmene stavu.
 
 #### Postup
-1. Administrátor otvorí zoznam používateľov.
-2. Administrátor vyberie konkrétne konto.
-3. Administrátor zvolí možnosť „Zablokovať konto“.
-4. Systém vyžiada dôvod blokácie.
-5. Administrátor potvrdí akciu.
-6. Systém zmení stav konta na `BLOCKED`.
-7. Systém uloží informáciu o dôvode a čase blokácie.
-8. Systém môže odoslať používateľovi notifikáciu o blokácii.
+1. Používateľ vyhľadá dostupné ponuky.
+2. Systém zobrazí zoznam dostupných ponúk.
+3. Používateľ zvolí konkrétnu ponuku.
+4. Systém zobrazí detail ponuky vrátane položiek, miesta vyzdvihnutia a času vyzdvihnutia.
+5. Používateľ zvolí možnosť rezervovať ponuku.
+6. Systém overí, že ponuka je stále dostupná.
+7. Systém vytvorí rezerváciu v stave `ACTIVE` a priradí ju danému používateľovi a danej ponuke.
+8. Systém zmení stav ponuky na `RESERVED`.
+9. Systém zobrazí používateľovi potvrdenie o úspešnej rezervácii.
+10. Systém odošle notifikáciu používateľovi a vlastníkovi prevádzky.
 
 #### Alternatívy
+- `1a.` Používateľ nie je prihlásený do systému.
+  - `1a1.` Systém nepovolí vytvorenie rezervácie.
+  - `1a2.` Systém vyžiada prihlásenie používateľa.
 
-**1a. Používateľ nemá administrátorské oprávnenia.**  
-1a1. Systém akciu zamietne.
+- `6a.` Ponuka už nie je dostupná.
+  - `6a1.` Systém rezerváciu nevytvorí.
+  - `6a2.` Systém zobrazí používateľovi informáciu o nedostupnosti ponuky.
 
-**3a. Konto je už zablokované.**  
-3a1. Systém akciu nevykoná a zobrazí informáciu o aktuálnom stave.
+- `8a.` Systém zistí konflikt stavu ponuky pri ukladaní rezervácie.
+  - `8a1.` Systém rezerváciu nevytvorí.
+  - `8a2.` Systém obnoví detail ponuky a zobrazí aktuálny stav.
+
+- `10a.` Notifikáciu vlastníkovi prevádzky nie je možné doručiť.
+  - `10a1.` Systém uloží rezerváciu aj napriek tomu.
+  - `10a2.` Systém zaznamená neúspešné doručenie notifikácie.
+
+## UML Diagram
+
+![UML Diagram](diagram.png)
 
 ## Obchodné pravidlá (Business Rules)
 
-1. Ponuku je možné rezervovať iba v stave `AVAILABLE`.
-2. Jedna rezervácia sa viaže práve na jednu ponuku a jedného používateľa.
-3. Stav ponuky `RESERVED` znamená, že ponuka už nie je dostupná na ďalšiu rezerváciu.
-4. Rezerváciu je možné zrušiť iba vtedy, ak ešte neuplynul koniec `PickupTimeWindow`.
-5. Ak používateľ rezervovanú ponuku neprevezme do konca `PickupTimeWindow`, systém môže nastaviť stav rezervácie na `NO_SHOW`.
-6. Prevádzka môže upravovať alebo rušiť iba vlastné ponuky.
-7. Administrátor môže spravovať všetky kontá a všetky ponuky.
-8. Pri potvrdení vyzdvihnutia musí vzniknúť záznam `PickupConfirmation`.
-9. `PickupTimeWindow` musí spĺňať podmienku `from < to`.
-10. Ponuku so stavom `CANCELLED`, `EXPIRED`, `SOLD_OUT` alebo `PICKED_UP` nie je možné rezervovať.
-11. Blokované konto (`BLOCKED`) sa nemôže prihlásiť do systému ani vykonávať nové akcie.
-12. Zmena stavu ponuky alebo rezervácie môže vyvolať vytvorenie notifikácie pre dotknutého používateľa.
+1. Používateľ sa musí prihlásiť do systému, aby mohol vytvárať prevádzky, ponuky alebo rezervácie.
+2. Používateľ môže vytvoriť a spravovať nula alebo viac prevádzok (`Business`).
+3. Každá prevádzka patrí presne jednému používateľovi a nemôže existovať bez vlastníka.
+4. Novovytvorená prevádzka má stav `PENDING` a musí byť schválená administrátorom.
+5. Prevádzka v stave `PENDING`, `BLOCKED` alebo `REJECTED` nemôže publikovať ponuky.
+6. Ponuku je možné vytvoriť iba pre prevádzku v stave `ACTIVE`.
+7. Ponuka obsahuje aspoň jednu položku (`OfferItem`).
+8. Každá ponuka má presne jedno miesto vyzdvihnutia (`PickupLocation`) a jedno časové okno (`PickupTimeWindow`).
+9. Časové okno vyzdvihnutia musí spĺňať podmienku `from < to`.
+10. Miesto vyzdvihnutia sa môže, ale nemusí zhodovať s adresou prevádzky.
+11. Ponuku je možné rezervovať iba v stave `AVAILABLE`.
+12. Jedna rezervácia sa viaže presne na jednu ponuku a jedného používateľa.
+13. Stav ponuky `RESERVED` znamená, že ponuka už nie je dostupná na ďalšiu rezerváciu.
+14. Rezerváciu je možné zrušiť iba pred uplynutím času vyzdvihnutia (`PickupTimeWindow`).
+15. Ak používateľ nevyzdvihne ponuku v stanovenom čase, rezervácia môže prejsť do stavu `NO_SHOW`.
+16. Pri potvrdení vyzdvihnutia musí vzniknúť záznam `PickupConfirmation`.
+17. Používateľ môže vykonávať operácie iba nad svojimi prevádzkami a rezerváciami.
+18. Administrátor môže spravovať všetkých používateľov, prevádzky a ponuky.
+19. Administrátor môže meniť stav prevádzky (`BusinessStatus`).
+20. Používateľ so stavom `BLOCKED` nemôže vykonávať nové akcie v systéme.
+21. Zmena stavu ponuky, rezervácie alebo prevádzky môže vyvolať vytvorenie notifikácie.
+22. Používateľ nemôže vytvoriť dve prevádzky s rovnakým názvom.

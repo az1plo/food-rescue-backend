@@ -1,0 +1,188 @@
+@startuml
+hide circle
+skinparam classAttributeIconSize 0
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+enum BusinessStatus {
+  PENDING
+  ACTIVE
+  BLOCKED
+  REJECTED
+}
+
+enum OfferStatus {
+  DRAFT
+  AVAILABLE
+  RESERVED
+  PICKED_UP
+  SOLD_OUT
+  EXPIRED
+  CANCELLED
+}
+
+enum ReservationStatus {
+  ACTIVE
+  CANCELLED
+  PICKED_UP
+  NO_SHOW
+}
+
+class User {
+  - id: Long
+  - firstName: String
+  - lastName: String
+  - email: String
+  - password: String
+  - role: Role
+  - status: UserStatus
+  - createdAt: LocalDateTime
+  + block(): void
+}
+
+class Business {
+  - id: Long
+  - name: String
+  - description: String
+  - status: BusinessStatus
+  + changeAddress(address: Address): void
+  + updateDescription(description: String): void
+}
+
+class Address {
+  - street: String
+  - city: String
+  - postalCode: String
+  - country: String
+}
+
+class Offer {
+  - id: Long
+  - title: String
+  - description: String
+  - status: OfferStatus
+  + publish(): void
+  + cancel(): void
+  + markSoldOut(): void
+}
+
+class OfferItem {
+  - name: String
+  - quantity: Integer
+}
+
+class Reservation {
+  - id: Long
+  - status: ReservationStatus
+  + cancel(): void
+  + markPickedUp(): void
+  + markNoShow(): void
+}
+
+class PickupLocation {
+  - address: Address
+}
+
+class PickupTimeWindow {
+  - from: LocalDateTime
+  - to: LocalDateTime
+}
+
+class PickupConfirmation {
+  - confirmedAt: LocalDateTime
+}
+
+class Notification {
+  - message: String
+  - createdAt: LocalDateTime
+}
+
+interface UserRepository {
+  + create(user: User): void
+  + read(id: Long): User
+  + update(user: User): void
+  + delete(id: Long): void
+  + findByEmail(email: String): User
+}
+
+interface BusinessRepository {
+  + create(business: Business): void
+  + read(id: Long): Business
+  + update(business: Business): void
+  + delete(id: Long): void
+  + findByUser(user: User): Collection<Business>
+}
+
+interface OfferRepository {
+  + create(offer: Offer): void
+  + read(id: Long): Offer
+  + update(offer: Offer): void
+  + delete(id: Long): void
+  + findByBusiness(business: Business): Collection<Offer>
+}
+
+interface ReservationRepository {
+  + create(reservation: Reservation): void
+  + read(id: Long): Reservation
+  + update(reservation: Reservation): void
+  + delete(id: Long): void
+  + findByUser(user: User): Collection<Reservation>
+}
+
+class UserFactory {
+  + create(...): User
+}
+
+class BusinessFactory {
+  + create(...): Business
+}
+
+class OfferFactory {
+  + create(...): Offer
+}
+
+class ReservationFactory {
+  + create(...): Reservation
+}
+
+class ReservationDomainService {
+  + confirmPickup(...): void
+  + handleNoShow(...): void
+}
+
+User "1" <-- "0..*" Business : owner
+Business "1" *-- "1" Address
+Business "1" --> "0..*" Offer : publishes
+User "1" --> "0..*" Notification : receives
+
+Offer "1" *-- "1..*" OfferItem
+Offer "1" *-- "1" PickupLocation
+Offer "1" *-- "1" PickupTimeWindow
+
+Reservation "0..*" --> "1" Offer
+Reservation "0..*" --> "1" User
+Reservation "1" --> "0..1" PickupConfirmation
+
+UserRepository ..> User
+BusinessRepository ..> Business
+OfferRepository ..> Offer
+ReservationRepository ..> Reservation
+
+UserFactory ..> User
+BusinessFactory ..> Business
+OfferFactory ..> Offer
+ReservationFactory ..> Reservation
+
+ReservationDomainService ..> Reservation
+ReservationDomainService ..> Offer
+ReservationDomainService ..> PickupConfirmation
+@enduml
