@@ -69,10 +69,13 @@ class Offer {
   - id: Long
   - title: String
   - description: String
+  - price: Decimal
+  - quantityAvailable: Integer
   - status: OfferStatus
   + publish(): void
   + cancel(): void
   + markSoldOut(): void
+  + reserve(): void 
 }
 
 class OfferItem {
@@ -104,6 +107,7 @@ class PickupConfirmation {
 class Notification {
   - message: String
   - createdAt: LocalDateTime
+  + markAsRead(): void
 }
 
 interface UserRepository {
