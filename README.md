@@ -90,11 +90,11 @@ V systéme pribudlo nové konto s rolou `USER` alebo `SELLER` a stavom `ACTIVE`.
 6. Systém zobrazí potvrdenie o úspešnej registrácii.
 
 #### Alternatívy
-**4a. Konto s daným e-mailom už existuje.**  
-4a1. Systém registráciu zamietne a zobrazí správu: „Účet s týmto e-mailom už existuje.“
-
 **3a. Používateľ nevyplní povinné údaje alebo zadá neplatný formát.**  
 3a1. Systém zvýrazní chybné polia a nedovolí odoslať formulár.
+
+**4a. Konto s daným e-mailom už existuje.**  
+4a1. Systém registráciu zamietne a zobrazí správu: „Účet s týmto e-mailom už existuje.“
 
 ### UC-03-001 Vytvorenie a zverejnenie ponuky
 
@@ -153,11 +153,12 @@ V systéme vznikla nová rezervácia v stave `ACTIVE` a ponuka prešla do stavu 
 8. Systém odošle notifikáciu používateľovi a prevádzke.
 
 #### Alternatívy
-**4a. Ponuka už nie je dostupná.**  
-4a1. Systém rezerváciu nevytvorí a zobrazí správu o nedostupnosti ponuky.
 
 **1a. Používateľ nie je prihlásený.**  
 1a1. Systém vyžiada prihlásenie používateľa.
+
+**4a. Ponuka už nie je dostupná.**  
+4a1. Systém rezerváciu nevytvorí a zobrazí správu o nedostupnosti ponuky.
 
 ### UC-08-001 Zrušenie rezervácie
 
@@ -183,11 +184,12 @@ Rezervácia je v stave `CANCELLED` a ponuka je opäť dostupná, ak to obchodné
 7. Systém odošle notifikáciu prevádzke a používateľovi.
 
 #### Alternatívy
-**4a. Čas vyzdvihnutia už uplynul.**  
-4a1. Systém zrušenie rezervácie nepovolí.
 
 **2a. Používateľ sa pokúsi zrušiť cudziu rezerváciu.**  
 2a1. Systém akciu zamietne z dôvodu nedostatočných oprávnení.
+
+**4a. Čas vyzdvihnutia už uplynul.**  
+4a1. Systém zrušenie rezervácie nepovolí.
 
 ### UC-09-001 Potvrdenie vyzdvihnutia
 
@@ -214,11 +216,11 @@ Rezervácia prejde do stavu `PICKED_UP`, ponuka prejde do stavu `PICKED_UP` a vz
 8. Systém odošle notifikáciu používateľovi.
 
 #### Alternatívy
-**4a. Rezervácia už nie je aktívna.**  
-4a1. Systém potvrdenie nepovolí.
-
 **1a. Prevádzka sa pokúsi potvrdiť cudziu rezerváciu.**  
 1a1. Systém akciu zamietne z dôvodu nedostatočných oprávnení.
+
+**4a. Rezervácia už nie je aktívna.**  
+4a1. Systém potvrdenie nepovolí.
 
 ### UC-15-001 Zablokovanie konta používateľa
 
@@ -245,11 +247,12 @@ Konto používateľa má stav `BLOCKED`.
 8. Systém môže odoslať používateľovi notifikáciu o blokácii.
 
 #### Alternatívy
-**3a. Konto je už zablokované.**  
-3a1. Systém akciu nevykoná a zobrazí informáciu o aktuálnom stave.
 
 **1a. Používateľ nemá administrátorské oprávnenia.**  
 1a1. Systém akciu zamietne.
+
+**3a. Konto je už zablokované.**  
+3a1. Systém akciu nevykoná a zobrazí informáciu o aktuálnom stave.
 
 ## Obchodné pravidlá (Business Rules)
 
