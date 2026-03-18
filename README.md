@@ -49,8 +49,6 @@ Food Rescue Platform je informačný systém zameraný na znižovanie plytvania 
 
 ## Zoznam prípadov použitia
 
-Nie je potrebné detailne rozpísať všetky prípady použitia, preto sú nižšie uvedené všetky identifikované UC a podrobne rozpracované sú vybrané kľúčové prípady.
-
 - **UC-01-001** Registrácia používateľa
 - **UC-02-001** Prihlásenie používateľa
 - **UC-03-001** Vytvorenie a zverejnenie ponuky
