@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>4.0.3</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>sk.posam.fsa.foodrescue</groupId>
+    <artifactId>food-rescue-platform</artifactId>
+    <version>0.0.1-SNAPSHOT</version>
+    <packaging>pom</packaging>
+
+    <name>Food Rescue Platform</name>
+
+    <properties>
+        <java.version>25</java.version>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <mapstruct.version>1.6.3</mapstruct.version>
+        <openapi-generator.version>7.10.0</openapi-generator.version>
+        <archunit.version>1.4.1</archunit.version>
+    </properties>
+
+    <modules>
+        <module>application/domain</module>
+        <module>application/outbound-repository-jpa</module>
+        <module>application/inbound-controller-rest</module>
+        <module>application/springboot</module>
+        <module>application/api-spec</module>
+    </modules>
+
+</project>

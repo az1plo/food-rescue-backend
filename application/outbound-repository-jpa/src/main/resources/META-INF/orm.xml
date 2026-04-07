@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<entity-mappings xmlns="https://jakarta.ee/xml/ns/persistence/orm"
+                 xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                 xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence/orm https://jakarta.ee/xml/ns/persistence/orm_3_1.xsd"
+                 version="3.1">
+
+    <embeddable class="sk.posam.fsa.foodrescue.domain.models.entities.Address" access="FIELD">
+        <attributes>
+            <basic name="street">
+                <column name="street"/>
+            </basic>
+            <basic name="city">
+                <column name="city"/>
+            </basic>
+            <basic name="postalCode">
+                <column name="postal_code"/>
+            </basic>
+            <basic name="country">
+                <column name="country"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+    <entity class="sk.posam.fsa.foodrescue.domain.models.entities.User" access="FIELD">
+        <table name="app_user"/>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="firstName">
+                <column name="first_name"/>
+            </basic>
+            <basic name="lastName">
+                <column name="last_name"/>
+            </basic>
+            <basic name="email">
+                <column name="email"/>
+            </basic>
+            <basic name="password">
+                <column name="password"/>
+            </basic>
+            <basic name="role">
+                <column name="role"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <basic name="status">
+                <column name="status"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <basic name="createdAt">
+                <column name="created_at"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <entity class="sk.posam.fsa.foodrescue.domain.models.entities.Business" access="FIELD">
+        <table name="business"/>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="ownerId">
+                <column name="owner_id"/>
+            </basic>
+            <basic name="name">
+                <column name="name"/>
+            </basic>
+            <basic name="description">
+                <column name="description"/>
+            </basic>
+            <basic name="status">
+                <column name="status"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <embedded name="address"/>
+            <basic name="createdAt">
+                <column name="created_at"/>
+            </basic>
+        </attributes>
+    </entity>
+</entity-mappings>

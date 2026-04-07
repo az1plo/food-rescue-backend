@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="business-seed-001" author="codex">
+        <insert tableName="app_user">
+            <column name="id" valueNumeric="1"/>
+            <column name="first_name" value="Active"/>
+            <column name="last_name" value="Owner"/>
+            <column name="email" value="active.user@foodrescue.sk"/>
+            <column name="password" value="password123"/>
+            <column name="role" value="USER"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="created_at" valueDate="2025-04-01T10:00:00"/>
+        </insert>
+
+        <insert tableName="app_user">
+            <column name="id" valueNumeric="2"/>
+            <column name="first_name" value="Blocked"/>
+            <column name="last_name" value="Owner"/>
+            <column name="email" value="blocked.user@foodrescue.sk"/>
+            <column name="password" value="password123"/>
+            <column name="role" value="USER"/>
+            <column name="status" value="BLOCKED"/>
+            <column name="created_at" valueDate="2025-04-01T10:05:00"/>
+        </insert>
+    </changeSet>
+
+    <changeSet id="business-seed-002" author="codex">
+        <insert tableName="app_user">
+            <column name="id" valueNumeric="3"/>
+            <column name="first_name" value="Workshop"/>
+            <column name="last_name" value="Admin"/>
+            <column name="email" value="admin@posam.sk"/>
+            <column name="password" value="admin123"/>
+            <column name="role" value="ADMIN"/>
+            <column name="status" value="ACTIVE"/>
+            <column name="created_at" valueDate="2025-04-01T10:10:00"/>
+        </insert>
+    </changeSet>
+</databaseChangeLog>
