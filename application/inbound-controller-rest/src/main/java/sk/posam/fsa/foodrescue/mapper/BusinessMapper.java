@@ -3,6 +3,7 @@ package sk.posam.fsa.foodrescue.mapper;
 import org.springframework.stereotype.Component;
 import sk.posam.fsa.foodrescue.domain.models.entities.Business;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessResponseDto;
+import sk.posam.fsa.foodrescue.rest.dto.BusinessStatusDto;
 import sk.posam.fsa.foodrescue.rest.dto.CreateBusinessRequestDto;
 import sk.posam.fsa.foodrescue.rest.dto.UpdateBusinessRequestDto;
 
@@ -29,7 +30,7 @@ public class BusinessMapper {
         dto.setDescription(entity.getDescription());
         dto.setStatus(
                 entity.getStatus() != null
-                        ? BusinessResponseDto.StatusEnum.valueOf(entity.getStatus().name())
+                        ? BusinessStatusDto.valueOf(entity.getStatus().name())
                         : null
         );
         dto.setAddress(addressMapper.toDto(entity.getAddress()));

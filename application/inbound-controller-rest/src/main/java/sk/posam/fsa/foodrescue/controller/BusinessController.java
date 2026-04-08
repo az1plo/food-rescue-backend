@@ -5,7 +5,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import sk.posam.fsa.foodrescue.domain.models.entities.Business;
 import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.service.BusinessFacade;
+import sk.posam.fsa.foodrescue.domain.services.BusinessFacade;
 import sk.posam.fsa.foodrescue.mapper.BusinessMapper;
 import sk.posam.fsa.foodrescue.rest.api.BusinessesApi;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessResponseDto;

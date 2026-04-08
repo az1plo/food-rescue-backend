@@ -3,8 +3,8 @@ package sk.posam.fsa.foodrescue;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import sk.posam.fsa.foodrescue.domain.repositories.UserRepository;
-import sk.posam.fsa.foodrescue.domain.service.UserFacade;
-import sk.posam.fsa.foodrescue.domain.service.UserService;
+import sk.posam.fsa.foodrescue.domain.services.UserFacade;
+import sk.posam.fsa.foodrescue.domain.services.UserService;
 
 @Configuration
 public class UserBeanConfiguration {

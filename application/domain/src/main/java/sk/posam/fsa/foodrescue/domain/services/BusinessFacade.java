@@ -1,4 +1,4 @@
-package sk.posam.fsa.foodrescue.domain.service;
+package sk.posam.fsa.foodrescue.domain.services;
 
 import sk.posam.fsa.foodrescue.domain.models.entities.Business;
 import sk.posam.fsa.foodrescue.domain.models.entities.User;

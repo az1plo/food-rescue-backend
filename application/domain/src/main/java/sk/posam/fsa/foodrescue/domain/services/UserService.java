@@ -1,4 +1,4 @@
-package sk.posam.fsa.foodrescue.domain.service;
+package sk.posam.fsa.foodrescue.domain.services;
 
 import sk.posam.fsa.foodrescue.domain.exceptions.FoodRescueException;
 import sk.posam.fsa.foodrescue.domain.exceptions.ValidationException;

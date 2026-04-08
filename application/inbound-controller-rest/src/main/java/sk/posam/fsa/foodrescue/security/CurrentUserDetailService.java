@@ -5,7 +5,7 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
 import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.service.UserFacade;
+import sk.posam.fsa.foodrescue.domain.services.UserFacade;
 
 @Service
 public class CurrentUserDetailService {

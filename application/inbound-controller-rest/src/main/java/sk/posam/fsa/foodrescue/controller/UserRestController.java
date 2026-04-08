@@ -3,7 +3,7 @@ package sk.posam.fsa.foodrescue.controller;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import sk.posam.fsa.foodrescue.domain.service.UserFacade;
+import sk.posam.fsa.foodrescue.domain.services.UserFacade;
 import sk.posam.fsa.foodrescue.mapper.UserMapper;
 import sk.posam.fsa.foodrescue.domain.models.entities.User;
 import sk.posam.fsa.foodrescue.rest.api.UsersApi;
