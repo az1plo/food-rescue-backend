@@ -4,6 +4,7 @@ import org.springframework.stereotype.Repository;
 import sk.posam.fsa.foodrescue.domain.models.entities.Business;
 import sk.posam.fsa.foodrescue.domain.repositories.BusinessRepository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -18,6 +19,11 @@ public class JpaBusinessRepositoryAdapter implements BusinessRepository {
     @Override
     public Business save(Business business) {
         return businessSpringDataRepository.save(business);
+    }
+
+    @Override
+    public List<Business> findAllByOwnerId(Long ownerId) {
+        return businessSpringDataRepository.findAllByOwnerIdOrderByCreatedAtDesc(ownerId);
     }
 
     @Override

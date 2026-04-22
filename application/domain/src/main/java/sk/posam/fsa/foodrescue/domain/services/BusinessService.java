@@ -6,6 +6,8 @@ import sk.posam.fsa.foodrescue.domain.models.entities.User;
 import sk.posam.fsa.foodrescue.domain.models.enums.UserRole;
 import sk.posam.fsa.foodrescue.domain.repositories.BusinessRepository;
 
+import java.util.List;
+
 public class BusinessService implements BusinessFacade {
 
     private final BusinessRepository businessRepository;
@@ -15,7 +17,7 @@ public class BusinessService implements BusinessFacade {
     }
 
     @Override
-    public void create(User currentUser, Business business) {
+    public Business create(User currentUser, Business business) {
 
         if (!currentUser.isActive()) {
             throw new FoodRescueException(
@@ -34,7 +36,12 @@ public class BusinessService implements BusinessFacade {
         business.setOwnerId(currentUser.getId());
         business.prepareForCreation();
 
-        businessRepository.save(business);
+        return businessRepository.save(business);
+    }
+
+    @Override
+    public List<Business> getBusinesses(User currentUser) {
+        return businessRepository.findAllByOwnerId(currentUser.getId());
     }
 
     @Override

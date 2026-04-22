@@ -91,6 +91,55 @@ paths:
           $ref: '#/components/responses/InternalServerErrorResponse'
 
   /businesses:
+    get:
+      tags:
+        - Business
+      summary: List businesses of current user
+      description: |
+        Returns all businesses owned by the authenticated user.
+
+      operationId: getBusinesses
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Businesses listed successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BusinessResponse'
+              examples:
+                businessesFound:
+                  value:
+                    - id: 10
+                      ownerId: 2
+                      name: Bistro DobrÃ© Jedlo
+                      description: Vegetarian rescue meals
+                      status: PENDING
+                      address:
+                        street: Hlavna 1
+                        city: Kosice
+                        postalCode: 04001
+                        country: Slovakia
+                      createdAt: 2025-04-08T18:30:00Z
+                    - id: 11
+                      ownerId: 2
+                      name: Green Kitchen
+                      description: Fresh rescue lunches
+                      status: ACTIVE
+                      address:
+                        street: Mestska 5
+                        city: Kosice
+                        postalCode: 04001
+                        country: Slovakia
+                      createdAt: 2025-04-10T10:00:00Z
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
     post:
       tags:
         - Business

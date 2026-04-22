@@ -1,6 +1,5 @@
 package sk.posam.fsa.foodrescue.controller;
 
-import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import sk.posam.fsa.foodrescue.domain.models.entities.Business;
@@ -12,6 +11,9 @@ import sk.posam.fsa.foodrescue.rest.dto.BusinessResponseDto;
 import sk.posam.fsa.foodrescue.rest.dto.CreateBusinessRequestDto;
 import sk.posam.fsa.foodrescue.rest.dto.UpdateBusinessRequestDto;
 import sk.posam.fsa.foodrescue.security.CurrentUserDetailService;
+
+import java.net.URI;
+import java.util.List;
 
 @RestController
 public class BusinessController implements BusinessesApi {
@@ -29,11 +31,20 @@ public class BusinessController implements BusinessesApi {
     }
 
     @Override
+    public ResponseEntity<List<BusinessResponseDto>> getBusinesses() {
+        User user = currentUserDetailService.getFullCurrentUser();
+        List<BusinessResponseDto> businesses = businessFacade.getBusinesses(user).stream()
+                .map(businessMapper::toDto)
+                .toList();
+        return ResponseEntity.ok(businesses);
+    }
+
+    @Override
     public ResponseEntity<Void> createBusiness(CreateBusinessRequestDto request) {
         User user = currentUserDetailService.getFullCurrentUser();
         Business business = businessMapper.toEntity(request);
-        businessFacade.create(user, business);
-        return ResponseEntity.status(HttpStatus.CREATED).build();
+        Business createdBusiness = businessFacade.create(user, business);
+        return ResponseEntity.created(URI.create("/businesses/" + createdBusiness.getId())).build();
     }
 
     @Override

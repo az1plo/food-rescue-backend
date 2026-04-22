@@ -3,9 +3,13 @@ package sk.posam.fsa.foodrescue.domain.services;
 import sk.posam.fsa.foodrescue.domain.models.entities.Business;
 import sk.posam.fsa.foodrescue.domain.models.entities.User;
 
+import java.util.List;
+
 public interface BusinessFacade {
 
-    void create(User currentUser, Business business);
+    Business create(User currentUser, Business business);
+
+    List<Business> getBusinesses(User currentUser);
 
     Business get(User currentUser, Long id);
 
