@@ -29,6 +29,16 @@ management:
       exposure:
         include: "*"
 
+food-rescue:
+  identity:
+    keycloak:
+      base-url: ${FOOD_RESCUE_KEYCLOAK_BASE_URL:http://localhost:8081}
+      realm: ${FOOD_RESCUE_KEYCLOAK_REALM:FSA}
+      admin-realm: ${FOOD_RESCUE_KEYCLOAK_ADMIN_REALM:master}
+      admin-client-id: ${FOOD_RESCUE_KEYCLOAK_ADMIN_CLIENT_ID:admin-cli}
+      admin-username: ${FOOD_RESCUE_KEYCLOAK_ADMIN_USERNAME:admin}
+      admin-password: ${FOOD_RESCUE_KEYCLOAK_ADMIN_PASSWORD:admin}
+
 ---
 spring:
   config:

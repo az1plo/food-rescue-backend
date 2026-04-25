@@ -3,14 +3,19 @@ package sk.posam.fsa.foodrescue.domain.services;
 import sk.posam.fsa.foodrescue.domain.exceptions.FoodRescueException;
 import sk.posam.fsa.foodrescue.domain.exceptions.ValidationException;
 import sk.posam.fsa.foodrescue.domain.models.entities.User;
+import sk.posam.fsa.foodrescue.domain.models.enums.UserRole;
+import sk.posam.fsa.foodrescue.domain.ports.UserIdentityProvider;
 import sk.posam.fsa.foodrescue.domain.repositories.UserRepository;
 
 public class UserService implements UserFacade {
 
     private final UserRepository userRepository;
+    private final UserIdentityProvider userIdentityProvider;
 
-    public UserService(UserRepository userRepository) {
+    public UserService(UserRepository userRepository,
+                       UserIdentityProvider userIdentityProvider) {
         this.userRepository = userRepository;
+        this.userIdentityProvider = userIdentityProvider;
     }
 
     @Override
@@ -25,9 +30,24 @@ public class UserService implements UserFacade {
 
     @Override
     public void create(User user) {
+        provisionUser(user, false);
+    }
+
+    @Override
+    public void register(User user) {
+        provisionUser(user, true);
+    }
+
+    private void provisionUser(User user, boolean forceRegularUserRole) {
         if (user == null) {
             throw new ValidationException("User must not be null");
         }
+
+        if (forceRegularUserRole) {
+            user.setRole(UserRole.USER);
+        }
+
+        user.prepareForCreation();
 
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new FoodRescueException(
@@ -36,7 +56,13 @@ public class UserService implements UserFacade {
             );
         }
 
-        user.prepareForCreation();
-        userRepository.create(user);
+        userIdentityProvider.create(user);
+
+        try {
+            userRepository.create(user);
+        } catch (RuntimeException ex) {
+            userIdentityProvider.deleteByEmail(user.getEmail());
+            throw ex;
+        }
     }
 }

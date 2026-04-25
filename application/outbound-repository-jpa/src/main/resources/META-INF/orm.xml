@@ -4,7 +4,7 @@
                  xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence/orm https://jakarta.ee/xml/ns/persistence/orm_3_1.xsd"
                  version="3.1">
 
-    <embeddable class="sk.posam.fsa.foodrescue.domain.models.entities.Address" access="FIELD">
+    <embeddable class="sk.posam.fsa.foodrescue.domain.models.valueobjects.Address" access="FIELD">
         <attributes>
             <basic name="street">
                 <column name="street"/>
@@ -17,6 +17,48 @@
             </basic>
             <basic name="country">
                 <column name="country"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+    <embeddable class="sk.posam.fsa.foodrescue.domain.models.valueobjects.OfferItem" access="FIELD">
+        <attributes>
+            <basic name="name">
+                <column name="name"/>
+            </basic>
+            <basic name="quantity">
+                <column name="quantity"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+    <embeddable class="sk.posam.fsa.foodrescue.domain.models.valueobjects.PickupLocation" access="FIELD">
+        <attributes>
+            <embedded name="address"/>
+            <basic name="note">
+                <column name="note"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+    <embeddable class="sk.posam.fsa.foodrescue.domain.models.valueobjects.PickupTimeWindow" access="FIELD">
+        <attributes>
+            <basic name="from">
+                <column name="time_from"/>
+            </basic>
+            <basic name="to">
+                <column name="time_to"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+    <embeddable class="sk.posam.fsa.foodrescue.domain.models.valueobjects.PickupConfirmation" access="FIELD">
+        <attributes>
+            <basic name="confirmedByUserId">
+                <column name="confirmed_by_user_id"/>
+            </basic>
+            <basic name="confirmedAt">
+                <column name="confirmed_at"/>
             </basic>
         </attributes>
     </embeddable>
@@ -77,6 +119,132 @@
             <embedded name="address"/>
             <basic name="createdAt">
                 <column name="created_at"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <entity class="sk.posam.fsa.foodrescue.domain.models.entities.Offer" access="FIELD">
+        <table name="offer"/>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="businessId">
+                <column name="business_id"/>
+            </basic>
+            <basic name="title">
+                <column name="title"/>
+            </basic>
+            <basic name="description">
+                <column name="description"/>
+            </basic>
+            <basic name="price">
+                <column name="price"/>
+            </basic>
+            <basic name="quantityAvailable">
+                <column name="quantity_available"/>
+            </basic>
+            <basic name="status">
+                <column name="status"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <element-collection name="items" fetch="EAGER" target-class="sk.posam.fsa.foodrescue.domain.models.valueobjects.OfferItem">
+                <collection-table name="offer_item">
+                    <join-column name="offer_id"/>
+                </collection-table>
+                <order-column name="item_order"/>
+            </element-collection>
+            <embedded name="pickupLocation">
+                <attribute-override name="address.street">
+                    <column name="pickup_street"/>
+                </attribute-override>
+                <attribute-override name="address.city">
+                    <column name="pickup_city"/>
+                </attribute-override>
+                <attribute-override name="address.postalCode">
+                    <column name="pickup_postal_code"/>
+                </attribute-override>
+                <attribute-override name="address.country">
+                    <column name="pickup_country"/>
+                </attribute-override>
+                <attribute-override name="note">
+                    <column name="pickup_note"/>
+                </attribute-override>
+            </embedded>
+            <embedded name="pickupTimeWindow">
+                <attribute-override name="from">
+                    <column name="pickup_time_from"/>
+                </attribute-override>
+                <attribute-override name="to">
+                    <column name="pickup_time_to"/>
+                </attribute-override>
+            </embedded>
+            <basic name="createdAt">
+                <column name="created_at"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <entity class="sk.posam.fsa.foodrescue.domain.models.entities.Reservation" access="FIELD">
+        <table name="reservation"/>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="offerId">
+                <column name="offer_id"/>
+            </basic>
+            <basic name="userId">
+                <column name="user_id"/>
+            </basic>
+            <basic name="status">
+                <column name="status"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <basic name="createdAt">
+                <column name="created_at"/>
+            </basic>
+            <basic name="cancelledAt">
+                <column name="cancelled_at"/>
+            </basic>
+            <embedded name="pickupConfirmation">
+                <attribute-override name="confirmedByUserId">
+                    <column name="pickup_confirmed_by_user_id"/>
+                </attribute-override>
+                <attribute-override name="confirmedAt">
+                    <column name="pickup_confirmed_at"/>
+                </attribute-override>
+            </embedded>
+        </attributes>
+    </entity>
+
+    <entity class="sk.posam.fsa.foodrescue.domain.models.entities.Notification" access="FIELD">
+        <table name="notification"/>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="userId">
+                <column name="user_id"/>
+            </basic>
+            <basic name="type">
+                <column name="type"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <basic name="title">
+                <column name="title"/>
+            </basic>
+            <basic name="message">
+                <column name="message"/>
+            </basic>
+            <basic name="createdAt">
+                <column name="created_at"/>
+            </basic>
+            <basic name="readAt">
+                <column name="read_at"/>
             </basic>
         </attributes>
     </entity>

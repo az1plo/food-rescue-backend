@@ -7,3 +7,4 @@ target/
 .DS_Store
 out/
 *.log
+.tmp-domain-classes/

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="reservation-001-create-reservation-table" author="codex">
+        <createTable tableName="reservation">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="offer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cancelled_at" type="TIMESTAMP"/>
+            <column name="pickup_confirmed_by_user_id" type="BIGINT"/>
+            <column name="pickup_confirmed_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="reservation"
+                                 baseColumnNames="offer_id"
+                                 referencedTableName="offer"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_reservation_offer"/>
+
+        <addForeignKeyConstraint baseTableName="reservation"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="app_user"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_reservation_user"/>
+    </changeSet>
+
+    <changeSet id="notification-001-create-notification-table" author="codex">
+        <createTable tableName="notification">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(160)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="read_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="notification"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="app_user"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_notification_user"/>
+    </changeSet>
+</databaseChangeLog>

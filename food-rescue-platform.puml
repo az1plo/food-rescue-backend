@@ -37,6 +37,15 @@ enum ReservationStatus {
   NO_SHOW
 }
 
+enum NotificationType {
+  BUSINESS_STATUS_CHANGED
+  OFFER_PUBLISHED
+  OFFER_RESERVED
+  OFFER_CANCELLED
+  RESERVATION_STATUS_CHANGED
+  SYSTEM
+}
+
 class User {
   - id: Long
   - firstName: String
@@ -46,14 +55,21 @@ class User {
   - role: Role
   - status: UserStatus
   - createdAt: LocalDateTime
+  + isAdmin(): boolean
   + block(): void
 }
 
 class Business {
+  - ownerId: Long
   - id: Long
   - name: String
   - description: String
   - status: BusinessStatus
+  + update(data: Business): void
+  + approve(): void
+  + reject(): void
+  + block(): void
+  + canPublishOffers(): boolean
   + changeAddress(address: Address): void
   + updateDescription(description: String): void
 }
@@ -67,11 +83,13 @@ class Address {
 
 class Offer {
   - id: Long
+  - businessId: Long
   - title: String
   - description: String
   - price: Decimal
   - quantityAvailable: Integer
   - status: OfferStatus
+  + update(data: Offer): void
   + publish(): void
   + cancel(): void
   + markSoldOut(): void
@@ -105,6 +123,10 @@ class PickupConfirmation {
 }
 
 class Notification {
+  - id: Long
+  - userId: Long
+  - type: NotificationType
+  - title: String
   - message: String
   - createdAt: LocalDateTime
   + markAsRead(): void
@@ -142,6 +164,14 @@ interface ReservationRepository {
   + findByUser(user: User): Collection<Reservation>
 }
 
+interface NotificationRepository {
+  + create(notification: Notification): void
+  + read(id: Long): Notification
+  + update(notification: Notification): void
+  + delete(id: Long): void
+  + findByUser(user: User): Collection<Notification>
+}
+
 class UserFactory {
   + create(...): User
 }
@@ -163,7 +193,7 @@ class ReservationDomainService {
   + handleNoShow(...): void
 }
 
-User "1" <-- "0..*" Business : owner
+User "1" <-- "0..*" Business : manages
 Business "1" *-- "1" Address
 Business "1" --> "0..*" Offer : publishes
 User "1" --> "0..*" Notification : receives
@@ -180,6 +210,7 @@ UserRepository ..> User
 BusinessRepository ..> Business
 OfferRepository ..> Offer
 ReservationRepository ..> Reservation
+NotificationRepository ..> Notification
 
 UserFactory ..> User
 BusinessFactory ..> Business

@@ -14,6 +14,14 @@ tags:
     description: User management endpoints
   - name: Business
     description: Business management endpoints for authenticated users
+  - name: Admin
+    description: Administrative moderation endpoints
+  - name: Offer
+    description: Offer management and browsing endpoints for authenticated users
+  - name: Reservation
+    description: Reservation management endpoints for authenticated users
+  - name: Notification
+    description: Notification inbox endpoints for authenticated users
 
 paths:
   /users:
@@ -22,7 +30,7 @@ paths:
         - User
       summary: Create a user
       description: |
-        Creates a new user in the local database.
+        Creates a new user in Keycloak and in the local database.
 
       operationId: createUser
       security:
@@ -87,6 +95,44 @@ paths:
                     details: []
                     timestamp: 2025-04-08T18:30:00Z
                     path: /users
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /users/register:
+    post:
+      tags:
+        - User
+      summary: Register a user
+      description: |
+        Registers a new regular user in Keycloak and in the local database.
+
+      operationId: registerUser
+      requestBody:
+        required: true
+        description: Public user registration payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/RegisterUserRequest'
+            examples:
+              userRegistration:
+                summary: Regular user registration
+                value:
+                  firstName: Jana
+                  lastName: Novakova
+                  email: jana.novakova@posam.sk
+                  password: user123
+      responses:
+        '201':
+          description: User registered successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '409':
+          description: A user with the same email already exists
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
 
@@ -396,6 +442,620 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
 
+  /admin/businesses/pending:
+    get:
+      tags:
+        - Admin
+      summary: List pending businesses for approval
+      description: |
+        Returns businesses waiting for administrative approval.
+
+      operationId: getPendingBusinessesForApproval
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Pending businesses listed successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BusinessResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: Admin privileges required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /admin/businesses/{id}/approve:
+    post:
+      tags:
+        - Admin
+      summary: Approve a business
+      description: |
+        Approves a pending business and moves it into the active state.
+
+      operationId: approveBusiness
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BusinessIdPathParam'
+      responses:
+        '200':
+          description: Business approved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: Admin privileges required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Business not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /offers:
+    get:
+      tags:
+        - Offer
+      summary: List offers
+      description: |
+        Returns available offers for browsing, or offers of a specific business when `businessId` is provided.
+
+      operationId: getOffers
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BusinessIdQueryParam'
+      responses:
+        '200':
+          description: Offers listed successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/OfferResponse'
+              examples:
+                availableOffers:
+                  value:
+                    - id: 100
+                      businessId: 10
+                      title: Evening bakery rescue bag
+                      description: Fresh pastries and bread from the end of the day
+                      price: 4.90
+                      quantityAvailable: 3
+                      status: AVAILABLE
+                      items:
+                        - name: Bakery bundle
+                          quantity: 1
+                      pickupLocation:
+                        address:
+                          street: Hlavna 1
+                          city: Kosice
+                          postalCode: 04001
+                          country: Slovakia
+                        note: Back entrance near the parking lot
+                      pickupTimeWindow:
+                        from: 2025-04-08T18:00:00Z
+                        to: 2025-04-08T19:30:00Z
+                      createdAt: 2025-04-08T16:00:00Z
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to access the requested business offers
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+    post:
+      tags:
+        - Offer
+      summary: Create an offer
+      description: |
+        Creates and publishes a new offer for an active business owned by the authenticated user.
+
+      operationId: createOffer
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: Offer creation payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOfferRequest'
+            examples:
+              offerCreate:
+                summary: New rescue offer
+                value:
+                  businessId: 10
+                  title: Evening bakery rescue bag
+                  description: Fresh pastries and bread from the end of the day
+                  price: 4.90
+                  quantityAvailable: 3
+                  items:
+                    - name: Bakery bundle
+                      quantity: 1
+                  pickupLocation:
+                    address:
+                      street: Hlavna 1
+                      city: Kosice
+                      postalCode: 04001
+                      country: Slovakia
+                    note: Back entrance near the parking lot
+                  pickupTimeWindow:
+                    from: 2025-04-08T18:00:00Z
+                    to: 2025-04-08T19:30:00Z
+      responses:
+        '201':
+          description: Offer created successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to create an offer for this business
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Business not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /offers/{id}:
+    get:
+      tags:
+        - Offer
+      summary: Get offer by id
+      description: |
+        Returns offer detail. Available offers can be viewed by authenticated users. Managed offers can also be viewed by their owner or admin.
+
+      operationId: getOffer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OfferIdPathParam'
+      responses:
+        '200':
+          description: Offer found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to access this offer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+    put:
+      tags:
+        - Offer
+      summary: Update offer
+      description: |
+        Updates an existing managed offer.
+
+      operationId: updateOffer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OfferIdPathParam'
+      requestBody:
+        required: true
+        description: Offer update payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/UpdateOfferRequest'
+      responses:
+        '200':
+          description: Offer updated successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OfferResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to update this offer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+    delete:
+      tags:
+        - Offer
+      summary: Cancel offer
+      description: |
+        Cancels an offer and removes it from active browsing.
+
+      operationId: deleteOffer
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OfferIdPathParam'
+      responses:
+        '204':
+          description: Offer cancelled successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to cancel this offer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /reservations:
+    get:
+      tags:
+        - Reservation
+      summary: List reservations
+      description: |
+        Returns reservation history of the authenticated user, or reservations of a managed offer when `offerId` is provided.
+
+      operationId: getReservations
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OfferIdQueryParam'
+      responses:
+        '200':
+          description: Reservations listed successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to access the requested reservations
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+    post:
+      tags:
+        - Reservation
+      summary: Create a reservation
+      description: |
+        Reserves an available offer for the authenticated user.
+
+      operationId: createReservation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        description: Reservation creation payload
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateReservationRequest'
+      responses:
+        '201':
+          description: Reservation created successfully
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to reserve this offer
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Offer not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Offer is no longer available
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /reservations/{id}:
+    get:
+      tags:
+        - Reservation
+      summary: Get reservation by id
+      description: |
+        Returns reservation detail for its owner, the managed business, or admin.
+
+      operationId: getReservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationIdPathParam'
+      responses:
+        '200':
+          description: Reservation found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to access this reservation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Reservation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /reservations/{id}/cancel:
+    post:
+      tags:
+        - Reservation
+      summary: Cancel reservation
+      description: |
+        Cancels an active reservation before the pickup window ends.
+
+      operationId: cancelReservation
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationIdPathParam'
+      responses:
+        '200':
+          description: Reservation cancelled successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to cancel this reservation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Reservation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Reservation can no longer be cancelled
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /reservations/{id}/pickup:
+    post:
+      tags:
+        - Reservation
+      summary: Confirm reservation pickup
+      description: |
+        Confirms pickup of a reserved offer by the business owner or admin.
+
+      operationId: confirmReservationPickup
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/ReservationIdPathParam'
+      responses:
+        '200':
+          description: Reservation pickup confirmed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReservationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to confirm pickup for this reservation
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Reservation not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /notifications:
+    get:
+      tags:
+        - Notification
+      summary: List notifications
+      description: |
+        Returns the notification inbox of the authenticated user.
+
+      operationId: getNotifications
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Notifications listed successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/NotificationResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /notifications/{id}:
+    get:
+      tags:
+        - Notification
+      summary: Get notification by id
+      description: |
+        Returns a notification of the authenticated user.
+
+      operationId: getNotification
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdPathParam'
+      responses:
+        '200':
+          description: Notification found successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to access this notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
+  /notifications/{id}/read:
+    post:
+      tags:
+        - Notification
+      summary: Mark notification as read
+      description: |
+        Marks a notification as read and returns the updated notification.
+
+      operationId: markNotificationAsRead
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/NotificationIdPathParam'
+      responses:
+        '200':
+          description: Notification marked as read successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/NotificationResponse'
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to modify this notification
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '404':
+          description: Notification not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
 components:
   securitySchemes:
     bearerAuth:
@@ -414,6 +1074,61 @@ components:
         format: int64
         minimum: 1
       example: 10
+
+    BusinessIdQueryParam:
+      name: businessId
+      in: query
+      required: false
+      description: Optional business identifier used to list offers of a managed business
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 10
+
+    OfferIdQueryParam:
+      name: offerId
+      in: query
+      required: false
+      description: Optional offer identifier used to list reservations of a managed offer
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 100
+
+    OfferIdPathParam:
+      name: id
+      in: path
+      required: true
+      description: Offer identifier
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 100
+
+    ReservationIdPathParam:
+      name: id
+      in: path
+      required: true
+      description: Reservation identifier
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 500
+
+    NotificationIdPathParam:
+      name: id
+      in: path
+      required: true
+      description: Notification identifier
+      schema:
+        type: integer
+        format: int64
+        minimum: 1
+      example: 900
 
   responses:
     BadRequestResponse:
@@ -497,6 +1212,36 @@ components:
         role:
           $ref: '#/components/schemas/UserRole'
 
+    RegisterUserRequest:
+      type: object
+      required:
+        - firstName
+        - lastName
+        - email
+        - password
+      properties:
+        firstName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Jana
+        lastName:
+          type: string
+          minLength: 1
+          maxLength: 100
+          example: Novakova
+        email:
+          type: string
+          format: email
+          maxLength: 255
+          example: jana.novakova@posam.sk
+        password:
+          type: string
+          format: password
+          minLength: 6
+          maxLength: 255
+          example: user123
+
     CreateBusinessRequest:
       type: object
       required:
@@ -569,6 +1314,282 @@ components:
           format: date-time
           example: 2025-04-08T18:30:00Z
 
+    CreateOfferRequest:
+      type: object
+      required:
+        - businessId
+        - title
+        - price
+        - quantityAvailable
+        - items
+        - pickupLocation
+        - pickupTimeWindow
+      properties:
+        businessId:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 10
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+          example: Evening bakery rescue bag
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: Fresh pastries and bread from the end of the day
+        price:
+          type: number
+          format: double
+          minimum: 0
+          example: 4.90
+        quantityAvailable:
+          type: integer
+          minimum: 1
+          example: 3
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OfferItem'
+        pickupLocation:
+          $ref: '#/components/schemas/PickupLocation'
+        pickupTimeWindow:
+          $ref: '#/components/schemas/PickupTimeWindow'
+
+    UpdateOfferRequest:
+      type: object
+      required:
+        - title
+        - price
+        - quantityAvailable
+        - items
+        - pickupLocation
+        - pickupTimeWindow
+      properties:
+        title:
+          type: string
+          minLength: 1
+          maxLength: 160
+          example: Updated bakery rescue bag
+        description:
+          type: string
+          nullable: true
+          maxLength: 1000
+          example: Updated offer description
+        price:
+          type: number
+          format: double
+          minimum: 0
+          example: 5.50
+        quantityAvailable:
+          type: integer
+          minimum: 1
+          example: 2
+        items:
+          type: array
+          minItems: 1
+          items:
+            $ref: '#/components/schemas/OfferItem'
+        pickupLocation:
+          $ref: '#/components/schemas/PickupLocation'
+        pickupTimeWindow:
+          $ref: '#/components/schemas/PickupTimeWindow'
+
+    OfferResponse:
+      type: object
+      required:
+        - id
+        - businessId
+        - title
+        - price
+        - quantityAvailable
+        - status
+        - items
+        - pickupLocation
+        - pickupTimeWindow
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 100
+        businessId:
+          type: integer
+          format: int64
+          example: 10
+        title:
+          type: string
+          example: Evening bakery rescue bag
+        description:
+          type: string
+          nullable: true
+          example: Fresh pastries and bread from the end of the day
+        price:
+          type: number
+          format: double
+          example: 4.90
+        quantityAvailable:
+          type: integer
+          example: 3
+        status:
+          $ref: '#/components/schemas/OfferStatus'
+        items:
+          type: array
+          items:
+            $ref: '#/components/schemas/OfferItem'
+        pickupLocation:
+          $ref: '#/components/schemas/PickupLocation'
+        pickupTimeWindow:
+          $ref: '#/components/schemas/PickupTimeWindow'
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-04-08T16:00:00Z
+
+    CreateReservationRequest:
+      type: object
+      required:
+        - offerId
+      properties:
+        offerId:
+          type: integer
+          format: int64
+          minimum: 1
+          example: 100
+
+    ReservationResponse:
+      type: object
+      required:
+        - id
+        - offerId
+        - userId
+        - status
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 500
+        offerId:
+          type: integer
+          format: int64
+          example: 100
+        userId:
+          type: integer
+          format: int64
+          example: 2
+        status:
+          $ref: '#/components/schemas/ReservationStatus'
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-04-08T16:30:00Z
+        cancelledAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2025-04-08T17:00:00Z
+        pickupConfirmation:
+          $ref: '#/components/schemas/PickupConfirmation'
+
+    PickupConfirmation:
+      type: object
+      required:
+        - confirmedByUserId
+        - confirmedAt
+      properties:
+        confirmedByUserId:
+          type: integer
+          format: int64
+          example: 10
+        confirmedAt:
+          type: string
+          format: date-time
+          example: 2025-04-08T19:10:00Z
+
+    NotificationResponse:
+      type: object
+      required:
+        - id
+        - userId
+        - type
+        - title
+        - message
+        - createdAt
+      properties:
+        id:
+          type: integer
+          format: int64
+          example: 900
+        userId:
+          type: integer
+          format: int64
+          example: 2
+        type:
+          $ref: '#/components/schemas/NotificationType'
+        title:
+          type: string
+          example: Reservation confirmed
+        message:
+          type: string
+          example: Your reservation for "Evening bakery rescue bag" is active.
+        createdAt:
+          type: string
+          format: date-time
+          example: 2025-04-08T16:31:00Z
+        readAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2025-04-08T16:45:00Z
+
+    OfferItem:
+      type: object
+      required:
+        - name
+        - quantity
+      properties:
+        name:
+          type: string
+          minLength: 1
+          maxLength: 160
+          example: Bakery bundle
+        quantity:
+          type: integer
+          minimum: 1
+          example: 1
+
+    PickupLocation:
+      type: object
+      required:
+        - address
+      properties:
+        address:
+          $ref: '#/components/schemas/Address'
+        note:
+          type: string
+          nullable: true
+          maxLength: 255
+          example: Back entrance near the parking lot
+
+    PickupTimeWindow:
+      type: object
+      required:
+        - from
+        - to
+      properties:
+        from:
+          type: string
+          format: date-time
+          example: 2025-04-08T18:00:00Z
+        to:
+          type: string
+          format: date-time
+          example: 2025-04-08T19:30:00Z
+
     Address:
       type: object
       required:
@@ -640,3 +1661,32 @@ components:
         - ACTIVE
         - BLOCKED
         - REJECTED
+
+    OfferStatus:
+      type: string
+      enum:
+        - DRAFT
+        - AVAILABLE
+        - RESERVED
+        - PICKED_UP
+        - SOLD_OUT
+        - EXPIRED
+        - CANCELLED
+
+    ReservationStatus:
+      type: string
+      enum:
+        - ACTIVE
+        - CANCELLED
+        - PICKED_UP
+        - NO_SHOW
+
+    NotificationType:
+      type: string
+      enum:
+        - BUSINESS_STATUS_CHANGED
+        - OFFER_PUBLISHED
+        - OFFER_RESERVED
+        - OFFER_CANCELLED
+        - RESERVATION_STATUS_CHANGED
+        - SYSTEM

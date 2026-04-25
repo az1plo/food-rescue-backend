@@ -47,11 +47,11 @@ public class BusinessMapper {
             return null;
         }
 
-        Business entity = new Business();
-        entity.setName(dto.getName());
-        entity.setDescription(dto.getDescription());
-        entity.setAddress(addressMapper.toEntity(dto.getAddress()));
-        return entity;
+        return Business.fromProfile(
+                dto.getName(),
+                dto.getDescription(),
+                addressMapper.toEntity(dto.getAddress())
+        );
     }
 
     public Business toEntity(UpdateBusinessRequestDto dto) {
@@ -59,10 +59,10 @@ public class BusinessMapper {
             return null;
         }
 
-        Business entity = new Business();
-        entity.setName(dto.getName());
-        entity.setDescription(dto.getDescription());
-        entity.setAddress(addressMapper.toEntity(dto.getAddress()));
-        return entity;
+        return Business.fromProfile(
+                dto.getName(),
+                dto.getDescription(),
+                addressMapper.toEntity(dto.getAddress())
+        );
     }
 }

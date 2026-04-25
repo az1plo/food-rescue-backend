@@ -41,6 +41,7 @@ public class SecurityConfiguration {
         auth
                 // Allowing access to actuator endpoints without authorization
                 .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
 
                 .requestMatchers(HttpMethod.POST, "/businesses").hasAnyRole("USER", "ADMIN")
@@ -48,6 +49,24 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/businesses/*").hasAnyRole("USER", "ADMIN")
                 .requestMatchers(HttpMethod.PUT, "/businesses/*").hasAnyRole("USER", "ADMIN")
                 .requestMatchers(HttpMethod.DELETE, "/businesses/*").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/admin/businesses/pending").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.POST, "/admin/businesses/*/approve").hasRole("ADMIN")
+
+                .requestMatchers(HttpMethod.POST, "/offers").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/offers").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/offers/*").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.PUT, "/offers/*").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.DELETE, "/offers/*").hasAnyRole("USER", "ADMIN")
+
+                .requestMatchers(HttpMethod.POST, "/reservations").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/reservations").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/reservations/*").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/reservations/*/cancel").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/reservations/*/pickup").hasAnyRole("USER", "ADMIN")
+
+                .requestMatchers(HttpMethod.GET, "/notifications").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.GET, "/notifications/*").hasAnyRole("USER", "ADMIN")
+                .requestMatchers(HttpMethod.POST, "/notifications/*/read").hasAnyRole("USER", "ADMIN")
                 // All other requests require authorization
                 .anyRequest().authenticated();
     }

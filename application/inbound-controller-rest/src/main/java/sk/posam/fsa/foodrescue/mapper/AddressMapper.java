@@ -1,7 +1,7 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.entities.Address;
+import sk.posam.fsa.foodrescue.domain.models.valueobjects.Address;
 import sk.posam.fsa.foodrescue.rest.dto.AddressDto;
 
 @Component

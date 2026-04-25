@@ -9,4 +9,6 @@ public interface UserFacade {
     User get(String email);
 
     void create(User user);
+
+    void register(User user);
 }

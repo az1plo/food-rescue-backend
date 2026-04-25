@@ -1,9 +1,10 @@
 package sk.posam.fsa.foodrescue.domain.services;
 
 import sk.posam.fsa.foodrescue.domain.exceptions.FoodRescueException;
+import sk.posam.fsa.foodrescue.domain.exceptions.ValidationException;
 import sk.posam.fsa.foodrescue.domain.models.entities.Business;
 import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.models.enums.UserRole;
+import sk.posam.fsa.foodrescue.domain.models.enums.BusinessStatus;
 import sk.posam.fsa.foodrescue.domain.repositories.BusinessRepository;
 
 import java.util.List;
@@ -18,6 +19,9 @@ public class BusinessService implements BusinessFacade {
 
     @Override
     public Business create(User currentUser, Business business) {
+        if (business == null) {
+            throw new ValidationException("Business must not be null");
+        }
 
         if (!currentUser.isActive()) {
             throw new FoodRescueException(
@@ -26,6 +30,9 @@ public class BusinessService implements BusinessFacade {
             );
         }
 
+        business.assignOwner(currentUser.getId());
+        business.prepareForCreation();
+
         if (businessRepository.existsByOwnerIdAndName(currentUser.getId(), business.getName())) {
             throw new FoodRescueException(
                     FoodRescueException.Type.CONFLICT,
@@ -33,15 +40,21 @@ public class BusinessService implements BusinessFacade {
             );
         }
 
-        business.setOwnerId(currentUser.getId());
-        business.prepareForCreation();
-
         return businessRepository.save(business);
     }
 
     @Override
     public List<Business> getBusinesses(User currentUser) {
+        if (currentUser.isAdmin()) {
+            return businessRepository.findAll();
+        }
         return businessRepository.findAllByOwnerId(currentUser.getId());
+    }
+
+    @Override
+    public List<Business> getPendingBusinesses(User currentUser) {
+        ensureAdmin(currentUser, "Only admins can review pending businesses");
+        return businessRepository.findAllByStatus(BusinessStatus.PENDING);
     }
 
     @Override
@@ -52,10 +65,7 @@ public class BusinessService implements BusinessFacade {
                         "Business with id=" + id + " was not found"
                 ));
 
-        boolean isAdmin = currentUser.getRole() == UserRole.ADMIN;
-        boolean isOwner = business.getOwnerId().equals(currentUser.getId());
-
-        if (!isAdmin && !isOwner) {
+        if (!business.canBeManagedBy(currentUser)) {
             throw new FoodRescueException(
                     FoodRescueException.Type.FORBIDDEN,
                     "You do not have access to business with id=" + id
@@ -66,7 +76,24 @@ public class BusinessService implements BusinessFacade {
     }
 
     @Override
+    public Business approve(User currentUser, Long id) {
+        ensureAdmin(currentUser, "Only admins can approve businesses");
+
+        Business business = businessRepository.findById(id)
+                .orElseThrow(() -> new FoodRescueException(
+                        FoodRescueException.Type.NOT_FOUND,
+                        "Business with id=" + id + " was not found"
+                ));
+
+        business.approve();
+        return businessRepository.save(business);
+    }
+
+    @Override
     public Business update(User currentUser, Long id, Business businessData) {
+        if (businessData == null) {
+            throw new ValidationException("Business update data must not be null");
+        }
 
         Business business = businessRepository.findById(id)
                 .orElseThrow(() -> new FoodRescueException(
@@ -81,24 +108,24 @@ public class BusinessService implements BusinessFacade {
             );
         }
 
-        if (!business.getOwnerId().equals(currentUser.getId())) {
+        if (!business.belongsTo(currentUser)) {
             throw new FoodRescueException(
                     FoodRescueException.Type.FORBIDDEN,
                     "You are not allowed to update this business"
             );
         }
 
-        if (businessRepository.existsByOwnerIdAndName(currentUser.getId(), businessData.getName())
-                && !business.getName().equals(businessData.getName())) {
+        String requestedName = businessData.normalizedName();
+
+        if (businessRepository.existsByOwnerIdAndName(currentUser.getId(), requestedName)
+                && !business.getName().equals(requestedName)) {
             throw new FoodRescueException(
                     FoodRescueException.Type.CONFLICT,
                     "Business with the same name already exists for this owner"
             );
         }
 
-        business.setName(businessData.getName());
-        business.setDescription(businessData.getDescription());
-        business.setAddress(businessData.getAddress());
+        business.update(businessData);
 
         return businessRepository.save(business);
     }
@@ -119,7 +146,7 @@ public class BusinessService implements BusinessFacade {
             );
         }
 
-        if (!business.getOwnerId().equals(currentUser.getId())) {
+        if (!business.belongsTo(currentUser)) {
             throw new FoodRescueException(
                     FoodRescueException.Type.FORBIDDEN,
                     "You are not allowed to delete this business"
@@ -127,5 +154,14 @@ public class BusinessService implements BusinessFacade {
         }
 
         businessRepository.delete(business);
+    }
+
+    private void ensureAdmin(User currentUser, String message) {
+        if (currentUser == null || !currentUser.isAdmin()) {
+            throw new FoodRescueException(
+                    FoodRescueException.Type.FORBIDDEN,
+                    message
+            );
+        }
     }
 }

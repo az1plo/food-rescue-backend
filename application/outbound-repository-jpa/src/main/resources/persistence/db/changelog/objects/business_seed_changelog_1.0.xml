@@ -39,4 +39,18 @@
             <column name="created_at" valueDate="2025-04-01T10:10:00"/>
         </insert>
     </changeSet>
+
+    <changeSet id="business-seed-003-sync-app-user-sequence" author="codex">
+        <preConditions onFail="MARK_RAN">
+            <dbms type="postgresql"/>
+        </preConditions>
+
+        <sql>
+            SELECT setval(
+                pg_get_serial_sequence('app_user', 'id'),
+                COALESCE((SELECT MAX(id) FROM app_user), 0) + 1,
+                false
+            );
+        </sql>
+    </changeSet>
 </databaseChangeLog>

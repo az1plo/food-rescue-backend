@@ -8,6 +8,7 @@ import sk.posam.fsa.foodrescue.mapper.UserMapper;
 import sk.posam.fsa.foodrescue.domain.models.entities.User;
 import sk.posam.fsa.foodrescue.rest.api.UsersApi;
 import sk.posam.fsa.foodrescue.rest.dto.CreateUserRequestDto;
+import sk.posam.fsa.foodrescue.rest.dto.RegisterUserRequestDto;
 
 @RestController
 public class UserRestController implements UsersApi {
@@ -24,6 +25,13 @@ public class UserRestController implements UsersApi {
     public ResponseEntity<Void> createUser(CreateUserRequestDto createUserRequestDto) {
         User user = userMapper.toUser(createUserRequestDto);
         userFacade.create(user);
+        return ResponseEntity.status(HttpStatus.CREATED).build();
+    }
+
+    @Override
+    public ResponseEntity<Void> registerUser(RegisterUserRequestDto registerUserRequestDto) {
+        User user = userMapper.toUser(registerUserRequestDto);
+        userFacade.register(user);
         return ResponseEntity.status(HttpStatus.CREATED).build();
     }
 }

@@ -11,7 +11,11 @@ public interface BusinessFacade {
 
     List<Business> getBusinesses(User currentUser);
 
+    List<Business> getPendingBusinesses(User currentUser);
+
     Business get(User currentUser, Long id);
+
+    Business approve(User currentUser, Long id);
 
     Business update(User currentUser, Long id, Business business);
 

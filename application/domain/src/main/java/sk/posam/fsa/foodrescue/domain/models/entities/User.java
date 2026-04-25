@@ -88,8 +88,28 @@ public class User {
         return status == UserStatus.ACTIVE;
     }
 
+    public boolean isAdmin() {
+        return role == UserRole.ADMIN;
+    }
+
     public boolean isBlocked() {
         return status == UserStatus.BLOCKED;
+    }
+
+    public boolean isDeleted() {
+        return status == UserStatus.DELETED;
+    }
+
+    public void activate() {
+        status = UserStatus.ACTIVE;
+    }
+
+    public void block() {
+        status = UserStatus.BLOCKED;
+    }
+
+    public void markDeleted() {
+        status = UserStatus.DELETED;
     }
 
     public void prepareForCreation() {

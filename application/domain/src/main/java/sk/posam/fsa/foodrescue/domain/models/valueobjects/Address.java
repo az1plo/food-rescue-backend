@@ -1,4 +1,4 @@
-package sk.posam.fsa.foodrescue.domain.models.entities;
+package sk.posam.fsa.foodrescue.domain.models.valueobjects;
 
 import sk.posam.fsa.foodrescue.domain.exceptions.ValidationException;
 
@@ -63,6 +63,10 @@ public class Address {
         city = city.trim();
         postalCode = postalCode.trim();
         country = country.trim();
+    }
+
+    public Address copy() {
+        return new Address(street, city, postalCode, country);
     }
 
     private void require(boolean valid, String message) {

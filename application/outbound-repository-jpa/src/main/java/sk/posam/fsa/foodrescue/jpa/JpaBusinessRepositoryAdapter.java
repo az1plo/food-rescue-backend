@@ -1,7 +1,9 @@
 package sk.posam.fsa.foodrescue.jpa;
 
+import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
 import sk.posam.fsa.foodrescue.domain.models.entities.Business;
+import sk.posam.fsa.foodrescue.domain.models.enums.BusinessStatus;
 import sk.posam.fsa.foodrescue.domain.repositories.BusinessRepository;
 
 import java.util.List;
@@ -19,6 +21,16 @@ public class JpaBusinessRepositoryAdapter implements BusinessRepository {
     @Override
     public Business save(Business business) {
         return businessSpringDataRepository.save(business);
+    }
+
+    @Override
+    public List<Business> findAll() {
+        return businessSpringDataRepository.findAll(Sort.by(Sort.Direction.DESC, "createdAt"));
+    }
+
+    @Override
+    public List<Business> findAllByStatus(BusinessStatus status) {
+        return businessSpringDataRepository.findAllByStatusOrderByCreatedAtAsc(status);
     }
 
     @Override
