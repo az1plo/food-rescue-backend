@@ -16,6 +16,8 @@ public interface ReservationRepository {
 
     List<Reservation> findAllByOfferId(Long offerId);
 
+    List<Reservation> findAllByOfferIds(List<Long> offerIds);
+
     List<Reservation> findAllByStatus(ReservationStatus status);
 
     Optional<Reservation> findActiveByOfferId(Long offerId);

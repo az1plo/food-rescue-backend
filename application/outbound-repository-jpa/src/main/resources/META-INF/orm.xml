@@ -139,6 +139,9 @@
             <basic name="description">
                 <column name="description"/>
             </basic>
+            <basic name="imageUrl">
+                <column name="image_url"/>
+            </basic>
             <basic name="price">
                 <column name="price"/>
             </basic>

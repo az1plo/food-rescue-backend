@@ -81,4 +81,10 @@
                                  referencedColumnNames="id"
                                  constraintName="fk_offer_item_offer"/>
     </changeSet>
+
+    <changeSet id="offer-003-add-image-url-column" author="codex">
+        <addColumn tableName="offer">
+            <column name="image_url" type="VARCHAR(1024)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

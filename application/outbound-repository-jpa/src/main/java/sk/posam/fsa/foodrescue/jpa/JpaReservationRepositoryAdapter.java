@@ -38,6 +38,13 @@ public class JpaReservationRepositoryAdapter implements ReservationRepository {
     }
 
     @Override
+    public List<Reservation> findAllByOfferIds(List<Long> offerIds) {
+        return offerIds == null || offerIds.isEmpty()
+                ? List.of()
+                : reservationSpringDataRepository.findAllByOfferIdInOrderByCreatedAtDesc(offerIds);
+    }
+
+    @Override
     public List<Reservation> findAllByStatus(ReservationStatus status) {
         return reservationSpringDataRepository.findAllByStatusOrderByCreatedAtDesc(status);
     }

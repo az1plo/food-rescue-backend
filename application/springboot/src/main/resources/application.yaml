@@ -38,6 +38,8 @@ food-rescue:
       admin-client-id: ${FOOD_RESCUE_KEYCLOAK_ADMIN_CLIENT_ID:admin-cli}
       admin-username: ${FOOD_RESCUE_KEYCLOAK_ADMIN_USERNAME:admin}
       admin-password: ${FOOD_RESCUE_KEYCLOAK_ADMIN_PASSWORD:admin}
+      client-id: ${FOOD_RESCUE_KEYCLOAK_CLIENT_ID:fsa-client}
+      client-secret: ${FOOD_RESCUE_KEYCLOAK_CLIENT_SECRET:fsa-client-secret}
 
 ---
 spring:

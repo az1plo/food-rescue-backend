@@ -11,4 +11,6 @@ public interface UserFacade {
     void create(User user);
 
     void register(User user);
+
+    User provisionExternalIdentity(User user);
 }

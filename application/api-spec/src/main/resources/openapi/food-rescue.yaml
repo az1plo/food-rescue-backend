@@ -442,6 +442,111 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
 
+  /businesses/{id}/analytics:
+    get:
+      tags:
+        - Business
+      summary: Get business analytics
+      description: |
+        Returns analytics for a business managed by the authenticated user.
+
+      operationId: getBusinessAnalytics
+      security:
+        - bearerAuth: []
+      parameters:
+        - $ref: '#/components/parameters/BusinessIdPathParam'
+      responses:
+        '200':
+          description: Business analytics returned successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BusinessAnalyticsResponse'
+              examples:
+                businessAnalytics:
+                  value:
+                    businessId: 10
+                    businessName: Bistro Dobre Jedlo
+                    generatedAt: 2025-04-28T16:30:00Z
+                    overview:
+                      totalOffers: 18
+                      availableOffers: 3
+                      offersClaimed: 14
+                      activeReservations: 2
+                      completedPickups: 10
+                      cancelledReservations: 2
+                      recoveredRevenue: 49.00
+                      pendingReservedRevenue: 9.80
+                      offerClaimRate: 77.8
+                      pickupSuccessRate: 71.4
+                      cancellationRate: 14.3
+                      averageHoursToFirstReservation: 4.5
+                    catalogStatus:
+                      - status: AVAILABLE
+                        count: 3
+                        share: 16.7
+                      - status: RESERVED
+                        count: 5
+                        share: 27.8
+                    dailyActivity:
+                      - date: 2025-04-27
+                        offersPublished: 2
+                        reservationsCreated: 3
+                        cancellations: 0
+                        pickupsConfirmed: 1
+                    daypartPerformance:
+                      - slotKey: evening
+                        label: Evening
+                        offersScheduled: 8
+                        offersClaimed: 7
+                        pickupsConfirmed: 5
+                        recoveredRevenue: 24.50
+                        claimRate: 87.5
+                        pickupRate: 62.5
+                    topItems:
+                      - itemName: Croissant
+                        offeredQuantity: 22
+                        reservedQuantity: 18
+                        pickedUpQuantity: 12
+                    insights:
+                      - tone: success
+                        title: Reserved revenue is already in motion
+                        message: 9.80 EUR are currently tied to active reservations waiting for pickup.
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '403':
+          description: User is not allowed to access analytics for this business
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                forbiddenAnalytics:
+                  value:
+                    code: FORBIDDEN
+                    message: You are not allowed to view analytics for this business
+                    details: []
+                    timestamp: 2025-04-08T18:30:00Z
+                    path: /businesses/10/analytics
+        '404':
+          description: Business not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                analyticsBusinessNotFound:
+                  value:
+                    code: NOT_FOUND
+                    message: Business with id=10 was not found
+                    details: []
+                    timestamp: 2025-04-08T18:30:00Z
+                    path: /businesses/10/analytics
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+
   /admin/businesses/pending:
     get:
       tags:
@@ -521,8 +626,6 @@ paths:
         Returns available offers for browsing, or offers of a specific business when `businessId` is provided.
 
       operationId: getOffers
-      security:
-        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/BusinessIdQueryParam'
       responses:
@@ -541,6 +644,7 @@ paths:
                       businessId: 10
                       title: Evening bakery rescue bag
                       description: Fresh pastries and bread from the end of the day
+                      imageUrl: /images/offer-bakery.png
                       price: 4.90
                       quantityAvailable: 3
                       status: AVAILABLE
@@ -595,6 +699,7 @@ paths:
                   businessId: 10
                   title: Evening bakery rescue bag
                   description: Fresh pastries and bread from the end of the day
+                  imageUrl: /images/offer-bakery.png
                   price: 4.90
                   quantityAvailable: 3
                   items:
@@ -1314,6 +1419,234 @@ components:
           format: date-time
           example: 2025-04-08T18:30:00Z
 
+    BusinessAnalyticsResponse:
+      type: object
+      required:
+        - businessId
+        - businessName
+        - generatedAt
+        - overview
+        - catalogStatus
+        - dailyActivity
+        - daypartPerformance
+        - topItems
+        - insights
+      properties:
+        businessId:
+          type: integer
+          format: int64
+          example: 10
+        businessName:
+          type: string
+          example: Bistro Dobre Jedlo
+        generatedAt:
+          type: string
+          format: date-time
+          example: 2025-04-28T16:30:00Z
+        overview:
+          $ref: '#/components/schemas/BusinessAnalyticsOverview'
+        catalogStatus:
+          type: array
+          items:
+            $ref: '#/components/schemas/BusinessAnalyticsCatalogStatus'
+        dailyActivity:
+          type: array
+          items:
+            $ref: '#/components/schemas/BusinessAnalyticsDailyActivityPoint'
+        daypartPerformance:
+          type: array
+          items:
+            $ref: '#/components/schemas/BusinessAnalyticsDaypartPerformance'
+        topItems:
+          type: array
+          items:
+            $ref: '#/components/schemas/BusinessAnalyticsItemPerformance'
+        insights:
+          type: array
+          items:
+            $ref: '#/components/schemas/BusinessAnalyticsInsight'
+
+    BusinessAnalyticsOverview:
+      type: object
+      required:
+        - totalOffers
+        - availableOffers
+        - offersClaimed
+        - activeReservations
+        - completedPickups
+        - cancelledReservations
+        - recoveredRevenue
+        - pendingReservedRevenue
+        - offerClaimRate
+        - pickupSuccessRate
+        - cancellationRate
+      properties:
+        totalOffers:
+          type: integer
+          example: 18
+        availableOffers:
+          type: integer
+          example: 3
+        offersClaimed:
+          type: integer
+          example: 14
+        activeReservations:
+          type: integer
+          example: 2
+        completedPickups:
+          type: integer
+          example: 10
+        cancelledReservations:
+          type: integer
+          example: 2
+        recoveredRevenue:
+          type: number
+          format: double
+          example: 49.00
+        pendingReservedRevenue:
+          type: number
+          format: double
+          example: 9.80
+        offerClaimRate:
+          type: number
+          format: double
+          example: 77.8
+        pickupSuccessRate:
+          type: number
+          format: double
+          example: 71.4
+        cancellationRate:
+          type: number
+          format: double
+          example: 14.3
+        averageHoursToFirstReservation:
+          type: number
+          format: double
+          nullable: true
+          example: 4.5
+
+    BusinessAnalyticsCatalogStatus:
+      type: object
+      required:
+        - status
+        - count
+        - share
+      properties:
+        status:
+          type: string
+          example: AVAILABLE
+        count:
+          type: integer
+          example: 3
+        share:
+          type: number
+          format: double
+          example: 16.7
+
+    BusinessAnalyticsDailyActivityPoint:
+      type: object
+      required:
+        - date
+        - offersPublished
+        - reservationsCreated
+        - cancellations
+        - pickupsConfirmed
+      properties:
+        date:
+          type: string
+          format: date
+          example: 2025-04-27
+        offersPublished:
+          type: integer
+          example: 2
+        reservationsCreated:
+          type: integer
+          example: 3
+        cancellations:
+          type: integer
+          example: 0
+        pickupsConfirmed:
+          type: integer
+          example: 1
+
+    BusinessAnalyticsDaypartPerformance:
+      type: object
+      required:
+        - slotKey
+        - label
+        - offersScheduled
+        - offersClaimed
+        - pickupsConfirmed
+        - recoveredRevenue
+        - claimRate
+        - pickupRate
+      properties:
+        slotKey:
+          type: string
+          example: evening
+        label:
+          type: string
+          example: Evening
+        offersScheduled:
+          type: integer
+          example: 8
+        offersClaimed:
+          type: integer
+          example: 7
+        pickupsConfirmed:
+          type: integer
+          example: 5
+        recoveredRevenue:
+          type: number
+          format: double
+          example: 24.50
+        claimRate:
+          type: number
+          format: double
+          example: 87.5
+        pickupRate:
+          type: number
+          format: double
+          example: 62.5
+
+    BusinessAnalyticsItemPerformance:
+      type: object
+      required:
+        - itemName
+        - offeredQuantity
+        - reservedQuantity
+        - pickedUpQuantity
+      properties:
+        itemName:
+          type: string
+          example: Croissant
+        offeredQuantity:
+          type: integer
+          example: 22
+        reservedQuantity:
+          type: integer
+          example: 18
+        pickedUpQuantity:
+          type: integer
+          example: 12
+
+    BusinessAnalyticsInsight:
+      type: object
+      required:
+        - tone
+        - title
+        - message
+      properties:
+        tone:
+          type: string
+          example: success
+        title:
+          type: string
+          example: Reserved revenue is already in motion
+        message:
+          type: string
+          example: 9.80 EUR are currently tied to active reservations waiting for pickup.
+
     CreateOfferRequest:
       type: object
       required:
@@ -1340,6 +1673,11 @@ components:
           nullable: true
           maxLength: 1000
           example: Fresh pastries and bread from the end of the day
+        imageUrl:
+          type: string
+          nullable: true
+          maxLength: 1024
+          example: /images/offer-bakery.png
         price:
           type: number
           format: double
@@ -1379,6 +1717,11 @@ components:
           nullable: true
           maxLength: 1000
           example: Updated offer description
+        imageUrl:
+          type: string
+          nullable: true
+          maxLength: 1024
+          example: https://cdn.example.com/offers/bakery-evening-bag.jpg
         price:
           type: number
           format: double
@@ -1427,6 +1770,10 @@ components:
           type: string
           nullable: true
           example: Fresh pastries and bread from the end of the day
+        imageUrl:
+          type: string
+          nullable: true
+          example: /images/offer-bakery.png
         price:
           type: number
           format: double

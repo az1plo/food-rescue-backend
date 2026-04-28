@@ -4,9 +4,11 @@ import sk.posam.fsa.foodrescue.domain.exceptions.FoodRescueException;
 import sk.posam.fsa.foodrescue.domain.exceptions.ValidationException;
 import sk.posam.fsa.foodrescue.domain.models.entities.Business;
 import sk.posam.fsa.foodrescue.domain.models.entities.Offer;
+import sk.posam.fsa.foodrescue.domain.models.entities.Reservation;
 import sk.posam.fsa.foodrescue.domain.models.entities.User;
 import sk.posam.fsa.foodrescue.domain.repositories.BusinessRepository;
 import sk.posam.fsa.foodrescue.domain.repositories.OfferRepository;
+import sk.posam.fsa.foodrescue.domain.repositories.ReservationRepository;
 
 import java.util.List;
 
@@ -14,10 +16,14 @@ public class OfferService implements OfferFacade {
 
     private final OfferRepository offerRepository;
     private final BusinessRepository businessRepository;
+    private final ReservationRepository reservationRepository;
 
-    public OfferService(OfferRepository offerRepository, BusinessRepository businessRepository) {
+    public OfferService(OfferRepository offerRepository,
+                        BusinessRepository businessRepository,
+                        ReservationRepository reservationRepository) {
         this.offerRepository = offerRepository;
         this.businessRepository = businessRepository;
+        this.reservationRepository = reservationRepository;
     }
 
     @Override
@@ -45,6 +51,10 @@ public class OfferService implements OfferFacade {
         }
 
         if (offer.isAvailable() && business.isActive()) {
+            return offer;
+        }
+
+        if (hasUserReservationForOffer(currentUser, offer.getId())) {
             return offer;
         }
 
@@ -139,5 +149,15 @@ public class OfferService implements OfferFacade {
                     message
             );
         }
+    }
+
+    private boolean hasUserReservationForOffer(User currentUser, Long offerId) {
+        if (currentUser == null || currentUser.getId() == null || offerId == null) {
+            return false;
+        }
+
+        return reservationRepository.findAllByUserId(currentUser.getId()).stream()
+                .map(Reservation::getOfferId)
+                .anyMatch(offerId::equals);
     }
 }

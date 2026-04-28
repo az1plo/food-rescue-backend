@@ -13,6 +13,8 @@ public class KeycloakProperties {
     private String adminClientId = "admin-cli";
     private String adminUsername = "admin";
     private String adminPassword = "admin";
+    private String clientId = "fsa-client";
+    private String clientSecret = "fsa-client-secret";
 
     public String getBaseUrl() {
         return baseUrl;
@@ -60,5 +62,21 @@ public class KeycloakProperties {
 
     public void setAdminPassword(String adminPassword) {
         this.adminPassword = adminPassword;
+    }
+
+    public String getClientId() {
+        return clientId;
+    }
+
+    public void setClientId(String clientId) {
+        this.clientId = clientId;
+    }
+
+    public String getClientSecret() {
+        return clientSecret;
+    }
+
+    public void setClientSecret(String clientSecret) {
+        this.clientSecret = clientSecret;
     }
 }

@@ -37,13 +37,14 @@ $AdminPassword = Get-EnvOrDefault -Name 'ADMIN_PASSWORD' -DefaultValue 'admin'
 $RealmName = Get-EnvOrDefault -Name 'REALM_NAME' -DefaultValue 'FSA'
 $ClientId = Get-EnvOrDefault -Name 'CLIENT_ID' -DefaultValue 'fsa-client'
 $PreferredClientSecret = Get-EnvOrDefault -Name 'CLIENT_SECRET' -DefaultValue 'fsa-client-secret'
+$GoogleClientId = Get-EnvOrDefault -Name 'GOOGLE_CLIENT_ID' -DefaultValue ''
+$GoogleClientSecret = Get-EnvOrDefault -Name 'GOOGLE_CLIENT_SECRET' -DefaultValue ''
 $ForceRecreateRealm = Get-BoolEnvOrDefault -Name 'FORCE_RECREATE_REALM' -DefaultValue $true
 
-$Roles = @('ADMIN', 'TEACHER', 'STUDENT')
+$Roles = @('ADMIN', 'USER')
 $Users = @(
     @{ Username = 'admin@posam.sk'; Password = 'admin123'; Role = 'ADMIN'; FirstName = 'Workshop'; LastName = 'Admin' },
-    @{ Username = 'teacher@posam.sk'; Password = 'teacher123'; Role = 'TEACHER'; FirstName = 'Workshop'; LastName = 'Teacher' },
-    @{ Username = 'student@posam.sk'; Password = 'student123'; Role = 'STUDENT'; FirstName = 'Workshop'; LastName = 'Student' }
+    @{ Username = 'user@posam.sk'; Password = 'user123'; Role = 'USER'; FirstName = 'Workshop'; LastName = 'User' }
 )
 
 $script:AccessToken = $null
@@ -247,6 +248,41 @@ function Ensure-Client {
     $script:ClientSecretValue = $secretPayload.value
 }
 
+function Ensure-GoogleIdentityProvider {
+    if ([string]::IsNullOrWhiteSpace($GoogleClientId) -or [string]::IsNullOrWhiteSpace($GoogleClientSecret)) {
+        Write-Log 'Skipping Google identity provider setup because GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET were not provided.'
+        return
+    }
+
+    $payload = @{
+        alias                    = 'google'
+        providerId               = 'google'
+        enabled                  = $true
+        trustEmail               = $true
+        storeToken               = $false
+        addReadTokenRoleOnCreate = $false
+        firstBrokerLoginFlowAlias = 'first broker login'
+        config                   = @{
+            syncMode     = 'IMPORT'
+            clientId     = $GoogleClientId
+            clientSecret = $GoogleClientSecret
+            useJwksUrl   = 'true'
+        }
+    }
+
+    $status = Get-StatusCode -Method 'GET' -Path "/admin/realms/$RealmName/identity-provider/instances/google"
+
+    if ($status -eq 404) {
+        Write-Log 'Creating Google identity provider.'
+        Invoke-ApiPost -Path "/admin/realms/$RealmName/identity-provider/instances" -Payload $payload
+    } elseif ($status -eq 200) {
+        Write-Log 'Updating Google identity provider.'
+        Invoke-ApiPut -Path "/admin/realms/$RealmName/identity-provider/instances/google" -Payload $payload
+    } else {
+        throw "Unexpected Google identity provider status code: $status"
+    }
+}
+
 function Get-UserId {
     param([string]$Username)
 
@@ -346,8 +382,7 @@ function Print-Summary {
     Write-Host ''
     Write-Host 'Users:'
     Write-Host '- admin@posam.sk / admin123 / ADMIN'
-    Write-Host '- teacher@posam.sk / teacher123 / TEACHER'
-    Write-Host '- student@posam.sk / student123 / STUDENT'
+    Write-Host '- user@posam.sk / user123 / USER'
     Write-Host ''
     Write-Host 'Useful env overrides:'
     Write-Host '- KEYCLOAK_URL (default: http://localhost:8081)'
@@ -356,7 +391,11 @@ function Print-Summary {
     Write-Host '- REALM_NAME (default: FSA)'
     Write-Host '- CLIENT_ID (default: fsa-client)'
     Write-Host '- CLIENT_SECRET (default: fsa-client-secret, Keycloak may keep existing one for existing client)'
+    Write-Host '- GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (optional, configures Google broker login)'
     Write-Host '- FORCE_RECREATE_REALM=true|false (default: true)'
+    Write-Host ''
+    Write-Host 'Google redirect URI to register in Google Cloud Console:'
+    Write-Host "- $KeycloakUrl/realms/$RealmName/broker/google/endpoint"
 }
 
 function Main {
@@ -368,6 +407,7 @@ function Main {
     }
 
     Ensure-Client
+    Ensure-GoogleIdentityProvider
 
     foreach ($user in $Users) {
         Ensure-User -User $user

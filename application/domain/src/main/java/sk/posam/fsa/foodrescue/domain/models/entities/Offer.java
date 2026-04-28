@@ -17,6 +17,7 @@ public class Offer {
     private Long businessId;
     private String title;
     private String description;
+    private String imageUrl;
     private BigDecimal price;
     private Integer quantityAvailable;
     private OfferStatus status;
@@ -31,6 +32,7 @@ public class Offer {
     public static Offer fromDraft(Long businessId,
                                   String title,
                                   String description,
+                                  String imageUrl,
                                   BigDecimal price,
                                   Integer quantityAvailable,
                                   List<OfferItem> items,
@@ -40,6 +42,7 @@ public class Offer {
         offer.businessId = businessId;
         offer.title = title;
         offer.description = description;
+        offer.imageUrl = imageUrl;
         offer.price = price;
         offer.quantityAvailable = quantityAvailable;
         offer.items = copyItems(items);
@@ -62,6 +65,10 @@ public class Offer {
 
     public String getDescription() {
         return description;
+    }
+
+    public String getImageUrl() {
+        return imageUrl;
     }
 
     public BigDecimal getPrice() {
@@ -136,6 +143,7 @@ public class Offer {
         applyDetails(
                 newData.title,
                 newData.description,
+                newData.imageUrl,
                 newData.price,
                 newData.quantityAvailable,
                 newData.items,
@@ -150,7 +158,7 @@ public class Offer {
 
     public void prepareForCreation() {
         require(businessId != null, "Business is required");
-        applyDetails(title, description, price, quantityAvailable, items, pickupLocation, pickupTimeWindow);
+        applyDetails(title, description, imageUrl, price, quantityAvailable, items, pickupLocation, pickupTimeWindow);
 
         if (status == null) {
             status = OfferStatus.DRAFT;
@@ -205,6 +213,7 @@ public class Offer {
 
     private void applyDetails(String title,
                               String description,
+                              String imageUrl,
                               BigDecimal price,
                               Integer quantityAvailable,
                               List<OfferItem> items,
@@ -212,6 +221,7 @@ public class Offer {
                               PickupTimeWindow pickupTimeWindow) {
         this.title = normalizeTitle(title);
         this.description = normalizeDescription(description);
+        this.imageUrl = normalizeImageUrl(imageUrl);
         this.price = normalizePrice(price);
         this.quantityAvailable = normalizeQuantity(quantityAvailable);
         this.items = normalizeItems(items);
@@ -231,6 +241,20 @@ public class Offer {
 
         String normalizedDescription = description.trim();
         return normalizedDescription.isBlank() ? null : normalizedDescription;
+    }
+
+    private String normalizeImageUrl(String imageUrl) {
+        if (imageUrl == null) {
+            return null;
+        }
+
+        String normalizedImageUrl = imageUrl.trim();
+        if (normalizedImageUrl.isBlank()) {
+            return null;
+        }
+
+        require(normalizedImageUrl.length() <= 1024, "Offer image URL is too long");
+        return normalizedImageUrl;
     }
 
     private BigDecimal normalizePrice(BigDecimal price) {

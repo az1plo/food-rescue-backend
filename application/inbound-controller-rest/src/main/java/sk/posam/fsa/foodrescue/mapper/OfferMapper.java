@@ -36,6 +36,7 @@ public class OfferMapper {
         dto.setBusinessId(entity.getBusinessId());
         dto.setTitle(entity.getTitle());
         dto.setDescription(entity.getDescription());
+        dto.setImageUrl(entity.getImageUrl());
         dto.setPrice(toDtoPrice(entity.getPrice()));
         dto.setQuantityAvailable(entity.getQuantityAvailable());
         dto.setStatus(
@@ -71,6 +72,7 @@ public class OfferMapper {
                 dto.getBusinessId(),
                 dto.getTitle(),
                 dto.getDescription(),
+                dto.getImageUrl(),
                 toDomainPrice(dto.getPrice()),
                 dto.getQuantityAvailable(),
                 dto.getItems() == null ? List.of() : dto.getItems().stream()
@@ -90,6 +92,7 @@ public class OfferMapper {
                 null,
                 dto.getTitle(),
                 dto.getDescription(),
+                dto.getImageUrl(),
                 toDomainPrice(dto.getPrice()),
                 dto.getQuantityAvailable(),
                 dto.getItems() == null ? List.of() : dto.getItems().stream()

@@ -8,16 +8,17 @@ ADMIN_PASSWORD="${ADMIN_PASSWORD:-admin}"
 REALM_NAME="${REALM_NAME:-FSA}"
 CLIENT_ID="${CLIENT_ID:-fsa-client}"
 PREFERRED_CLIENT_SECRET="${CLIENT_SECRET:-fsa-client-secret}"
+GOOGLE_CLIENT_ID="${GOOGLE_CLIENT_ID:-}"
+GOOGLE_CLIENT_SECRET="${GOOGLE_CLIENT_SECRET:-}"
 FORCE_RECREATE_REALM="${FORCE_RECREATE_REALM:-true}"
 
 # username:password:role:firstName:lastName
 USERS=(
   "admin@posam.sk:admin123:ADMIN:Workshop:Admin"
-  "teacher@posam.sk:teacher123:TEACHER:Workshop:Teacher"
-  "student@posam.sk:student123:STUDENT:Workshop:Student"
+  "user@posam.sk:user123:USER:Workshop:User"
 )
 
-ROLES=("ADMIN" "TEACHER" "STUDENT")
+ROLES=("ADMIN" "USER")
 
 log() {
   printf '[keycloak-setup] %s\n' "$*"
@@ -198,6 +199,48 @@ ensure_client() {
   CLIENT_SECRET_VALUE="$(api_get "/admin/realms/${REALM_NAME}/clients/${CLIENT_UUID}/client-secret" | jq -r '.value')"
 }
 
+ensure_google_identity_provider() {
+  if [[ -z "$GOOGLE_CLIENT_ID" || -z "$GOOGLE_CLIENT_SECRET" ]]; then
+    log "Skipping Google identity provider setup because GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET were not provided."
+    return
+  fi
+
+  local idp_url="${KEYCLOAK_URL}/admin/realms/${REALM_NAME}/identity-provider/instances/google"
+  local status
+  status="$(http_code GET "$idp_url")"
+
+  local payload
+  payload="$(jq -n \
+    --arg clientId "$GOOGLE_CLIENT_ID" \
+    --arg clientSecret "$GOOGLE_CLIENT_SECRET" \
+    '{
+      alias: "google",
+      providerId: "google",
+      enabled: true,
+      trustEmail: true,
+      storeToken: false,
+      addReadTokenRoleOnCreate: false,
+      firstBrokerLoginFlowAlias: "first broker login",
+      config: {
+        syncMode: "IMPORT",
+        clientId: $clientId,
+        clientSecret: $clientSecret,
+        useJwksUrl: "true"
+      }
+    }')"
+
+  if [[ "$status" == "404" ]]; then
+    log "Creating Google identity provider."
+    api_post "/admin/realms/${REALM_NAME}/identity-provider/instances" "$payload"
+  elif [[ "$status" == "200" ]]; then
+    log "Updating Google identity provider."
+    api_put "/admin/realms/${REALM_NAME}/identity-provider/instances/google" "$payload"
+  else
+    printf 'Unexpected Google identity provider status code: %s\n' "$status" >&2
+    exit 1
+  fi
+}
+
 get_user_id() {
   local username="$1"
   local encoded_username
@@ -291,8 +334,7 @@ Client secret: ${CLIENT_SECRET_VALUE}
 
 Users:
 - admin@posam.sk / admin123 / ADMIN
-- teacher@posam.sk / teacher123 / TEACHER
-- student@posam.sk / student123 / STUDENT
+- user@posam.sk / user123 / USER
 
 Useful env overrides:
 - KEYCLOAK_URL (default: http://localhost:8081)
@@ -301,7 +343,11 @@ Useful env overrides:
 - REALM_NAME (default: FSA)
 - CLIENT_ID (default: fsa-client)
 - CLIENT_SECRET (default: fsa-client-secret, Keycloak may keep existing one for existing client)
+- GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET (optional, configures Google broker login)
 - FORCE_RECREATE_REALM=true|false (default: true)
+
+Google redirect URI to register in Google Cloud Console:
+- ${KEYCLOAK_URL}/realms/${REALM_NAME}/broker/google/endpoint
 SUMMARY
 }
 
@@ -315,6 +361,7 @@ main() {
   done
 
   ensure_client
+  ensure_google_identity_provider
 
   for entry in "${USERS[@]}"; do
     IFS=':' read -r username password role first_name last_name <<<"$entry"

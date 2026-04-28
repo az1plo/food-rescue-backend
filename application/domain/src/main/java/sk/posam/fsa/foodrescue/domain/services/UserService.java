@@ -7,6 +7,8 @@ import sk.posam.fsa.foodrescue.domain.models.enums.UserRole;
 import sk.posam.fsa.foodrescue.domain.ports.UserIdentityProvider;
 import sk.posam.fsa.foodrescue.domain.repositories.UserRepository;
 
+import java.util.UUID;
+
 public class UserService implements UserFacade {
 
     private final UserRepository userRepository;
@@ -38,6 +40,28 @@ public class UserService implements UserFacade {
         provisionUser(user, true);
     }
 
+    @Override
+    public User provisionExternalIdentity(User user) {
+        if (user == null) {
+            throw new ValidationException("User must not be null");
+        }
+
+        User existingUser = userRepository.findByEmail(user.getEmail()).orElse(null);
+        if (existingUser != null) {
+            return existingUser;
+        }
+
+        user.setPassword(generateExternalIdentityPassword());
+
+        if (user.getRole() == null) {
+            user.setRole(UserRole.USER);
+        }
+
+        user.prepareForCreation();
+        userRepository.create(user);
+        return user;
+    }
+
     private void provisionUser(User user, boolean forceRegularUserRole) {
         if (user == null) {
             throw new ValidationException("User must not be null");
@@ -64,5 +88,9 @@ public class UserService implements UserFacade {
             userIdentityProvider.deleteByEmail(user.getEmail());
             throw ex;
         }
+    }
+
+    private String generateExternalIdentityPassword() {
+        return "EXTERNAL-AUTH-" + UUID.randomUUID();
     }
 }

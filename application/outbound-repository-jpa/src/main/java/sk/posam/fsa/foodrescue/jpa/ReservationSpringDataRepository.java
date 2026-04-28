@@ -13,6 +13,8 @@ interface ReservationSpringDataRepository extends JpaRepository<Reservation, Lon
 
     List<Reservation> findAllByOfferIdOrderByCreatedAtDesc(Long offerId);
 
+    List<Reservation> findAllByOfferIdInOrderByCreatedAtDesc(Iterable<Long> offerIds);
+
     List<Reservation> findAllByStatusOrderByCreatedAtDesc(ReservationStatus status);
 
     Optional<Reservation> findByOfferIdAndStatus(Long offerId, ReservationStatus status);
