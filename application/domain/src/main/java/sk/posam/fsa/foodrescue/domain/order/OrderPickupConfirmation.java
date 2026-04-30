@@ -1,21 +1,13 @@
-package sk.posam.fsa.foodrescue.domain.reservation;
+package sk.posam.fsa.foodrescue.domain.order;
 
 import sk.posam.fsa.foodrescue.domain.shared.ValidationException;
 
 import java.time.LocalDateTime;
 
-public class PickupConfirmation {
+public class OrderPickupConfirmation {
 
     private Long confirmedByUserId;
     private LocalDateTime confirmedAt;
-
-    public PickupConfirmation() {
-    }
-
-    public PickupConfirmation(Long confirmedByUserId, LocalDateTime confirmedAt) {
-        this.confirmedByUserId = confirmedByUserId;
-        this.confirmedAt = confirmedAt;
-    }
 
     public Long getConfirmedByUserId() {
         return confirmedByUserId;
@@ -47,5 +39,3 @@ public class PickupConfirmation {
         }
     }
 }
-
-

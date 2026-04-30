@@ -22,8 +22,8 @@ tags:
     description: Public marketplace endpoints with filters, distance, and business summaries
   - name: Support
     description: AI-ready support chat endpoints used by the floating assistant widget
-  - name: Reservation
-    description: Reservation management endpoints for authenticated users
+  - name: Order
+    description: Paid order and pickup management endpoints for authenticated users
   - name: Notification
     description: Notification inbox endpoints for authenticated users
 
@@ -912,34 +912,34 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
 
-  /reservations:
+  /orders:
     get:
       tags:
-        - Reservation
-      summary: List reservations
+        - Order
+      summary: List orders
       description: |
-        Returns reservation history of the authenticated user, or reservations of a managed offer when `offerId` is provided.
+        Returns paid orders of the authenticated user, or orders of a managed business when `businessId` is provided.
 
-      operationId: getReservations
+      operationId: getOrders
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/OfferIdQueryParam'
+        - $ref: '#/components/parameters/BusinessIdQueryParam'
       responses:
         '200':
-          description: Reservations listed successfully
+          description: Orders listed successfully
           content:
             application/json:
               schema:
                 type: array
                 items:
-                  $ref: '#/components/schemas/ReservationResponse'
+                  $ref: '#/components/schemas/OrderResponse'
         '400':
           $ref: '#/components/responses/BadRequestResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedResponse'
         '403':
-          description: User is not allowed to access the requested reservations
+          description: User is not allowed to access the requested orders
           content:
             application/json:
               schema:
@@ -949,30 +949,34 @@ paths:
 
     post:
       tags:
-        - Reservation
-      summary: Create a reservation
+        - Order
+      summary: Create an order
       description: |
-        Reserves an available offer for the authenticated user.
+        Creates and immediately pays for an order of an available offer for the authenticated user.
 
-      operationId: createReservation
+      operationId: createOrder
       security:
         - bearerAuth: []
       requestBody:
         required: true
-        description: Reservation creation payload
+        description: Order creation payload
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/CreateReservationRequest'
+              $ref: '#/components/schemas/CreateOrderRequest'
       responses:
         '201':
-          description: Reservation created successfully
+          description: Order created successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/OrderResponse'
         '400':
           $ref: '#/components/responses/BadRequestResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedResponse'
         '403':
-          description: User is not allowed to reserve this offer
+          description: User is not allowed to purchase this offer
           content:
             application/json:
               schema:
@@ -992,38 +996,38 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
 
-  /reservations/{id}:
+  /orders/{id}:
     get:
       tags:
-        - Reservation
-      summary: Get reservation by id
+        - Order
+      summary: Get order by id
       description: |
-        Returns reservation detail for its owner, the managed business, or admin.
+        Returns order detail for its owner, the managed business, or admin.
 
-      operationId: getReservation
+      operationId: getOrder
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/ReservationIdPathParam'
+        - $ref: '#/components/parameters/OrderIdPathParam'
       responses:
         '200':
-          description: Reservation found successfully
+          description: Order found successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReservationResponse'
+                $ref: '#/components/schemas/OrderResponse'
         '400':
           $ref: '#/components/responses/BadRequestResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedResponse'
         '403':
-          description: User is not allowed to access this reservation
+          description: User is not allowed to access this order
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Reservation not found
+          description: Order not found
           content:
             application/json:
               schema:
@@ -1031,44 +1035,44 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
 
-  /reservations/{id}/cancel:
-    post:
+  /orders/{id}/pickup-pass:
+    get:
       tags:
-        - Reservation
-      summary: Cancel reservation
+        - Order
+      summary: Get order pickup pass
       description: |
-        Cancels an active reservation before the pickup window ends.
+        Returns the simulated pickup pass for a paid order that belongs to the authenticated user.
 
-      operationId: cancelReservation
+      operationId: getOrderPickupPass
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/ReservationIdPathParam'
+        - $ref: '#/components/parameters/OrderIdPathParam'
       responses:
         '200':
-          description: Reservation cancelled successfully
+          description: Order pickup pass returned successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReservationResponse'
+                $ref: '#/components/schemas/OrderPickupPassResponse'
         '400':
           $ref: '#/components/responses/BadRequestResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedResponse'
         '403':
-          description: User is not allowed to cancel this reservation
+          description: User is not allowed to access the pickup pass for this order
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Reservation not found
+          description: Order not found
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '409':
-          description: Reservation can no longer be cancelled
+          description: Order does not have a pickup pass yet
           content:
             application/json:
               schema:
@@ -1076,38 +1080,45 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
 
-  /reservations/{id}/pickup:
+  /orders/{id}/pickup:
     post:
       tags:
-        - Reservation
-      summary: Confirm reservation pickup
+        - Order
+      summary: Confirm order pickup
       description: |
-        Confirms pickup of a reserved offer by the business owner or admin.
+        Confirms pickup of a paid order by the business owner or admin. The order pickup token must be supplied.
 
-      operationId: confirmReservationPickup
+      operationId: confirmOrderPickup
       security:
         - bearerAuth: []
       parameters:
-        - $ref: '#/components/parameters/ReservationIdPathParam'
+        - $ref: '#/components/parameters/OrderIdPathParam'
+      requestBody:
+        required: true
+        description: Pickup token used to confirm the customer handoff.
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ConfirmOrderPickupRequest'
       responses:
         '200':
-          description: Reservation pickup confirmed successfully
+          description: Order pickup confirmed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ReservationResponse'
+                $ref: '#/components/schemas/OrderResponse'
         '400':
           $ref: '#/components/responses/BadRequestResponse'
         '401':
           $ref: '#/components/responses/UnauthorizedResponse'
         '403':
-          description: User is not allowed to confirm pickup for this reservation
+          description: User is not allowed to confirm pickup for this order
           content:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
         '404':
-          description: Reservation not found
+          description: Order not found
           content:
             application/json:
               schema:
@@ -1241,7 +1252,7 @@ components:
       name: businessId
       in: query
       required: false
-      description: Optional business identifier used to list offers of a managed business
+      description: Optional business identifier used to filter resources of a managed business
       schema:
         type: integer
         format: int64
@@ -1301,17 +1312,6 @@ components:
         default: false
       example: false
 
-    OfferIdQueryParam:
-      name: offerId
-      in: query
-      required: false
-      description: Optional offer identifier used to list reservations of a managed offer
-      schema:
-        type: integer
-        format: int64
-        minimum: 1
-      example: 100
-
     OfferIdPathParam:
       name: id
       in: path
@@ -1323,11 +1323,11 @@ components:
         minimum: 1
       example: 100
 
-    ReservationIdPathParam:
+    OrderIdPathParam:
       name: id
       in: path
       required: true
-      description: Reservation identifier
+      description: Order identifier
       schema:
         type: integer
         format: int64
@@ -2110,11 +2110,13 @@ components:
         - PRICE_ASC
         - NEWEST
 
-    CreateReservationRequest:
+    CreateOrderRequest:
       type: object
       required:
         - offerId
         - quantity
+        - cardHolderName
+        - cardLast4
       properties:
         offerId:
           type: integer
@@ -2125,14 +2127,39 @@ components:
           type: integer
           minimum: 1
           example: 1
+        cardHolderName:
+          type: string
+          minLength: 2
+          maxLength: 120
+          example: Jamie Smith
+        cardLast4:
+          type: string
+          minLength: 4
+          maxLength: 4
+          pattern: '^[0-9]{4}$'
+          example: '4242'
 
-    ReservationResponse:
+    ConfirmOrderPickupRequest:
+      type: object
+      required:
+        - pickupToken
+      properties:
+        pickupToken:
+          type: string
+          minLength: 8
+          maxLength: 64
+          example: SAVR-AB12CD34EF56
+
+    OrderResponse:
       type: object
       required:
         - id
-        - offerId
+        - businessId
         - userId
-        - quantity
+        - businessName
+        - item
+        - pickupLocation
+        - pickupTimeWindow
         - status
         - createdAt
       properties:
@@ -2140,19 +2167,25 @@ components:
           type: integer
           format: int64
           example: 500
-        offerId:
+        businessId:
           type: integer
           format: int64
-          example: 100
+          example: 10
         userId:
           type: integer
           format: int64
           example: 2
-        quantity:
-          type: integer
-          example: 1
+        businessName:
+          type: string
+          example: Savr Bakery
+        item:
+          $ref: '#/components/schemas/OrderItemSnapshot'
+        pickupLocation:
+          $ref: '#/components/schemas/PickupLocation'
+        pickupTimeWindow:
+          $ref: '#/components/schemas/PickupTimeWindow'
         status:
-          $ref: '#/components/schemas/ReservationStatus'
+          $ref: '#/components/schemas/OrderStatus'
         createdAt:
           type: string
           format: date-time
@@ -2164,6 +2197,131 @@ components:
           example: 2025-04-08T17:00:00Z
         pickupConfirmation:
           $ref: '#/components/schemas/PickupConfirmation'
+        payment:
+          $ref: '#/components/schemas/OrderPaymentResponse'
+
+    OrderItemSnapshot:
+      type: object
+      required:
+        - offerId
+        - quantity
+        - title
+        - unitPrice
+      properties:
+        offerId:
+          type: integer
+          format: int64
+          example: 100
+        quantity:
+          type: integer
+          minimum: 1
+          example: 1
+        title:
+          type: string
+          example: Evening bakery rescue bag
+        imageUrl:
+          type: string
+          nullable: true
+          example: /images/offer-bakery.png
+        unitPrice:
+          type: number
+          format: double
+          example: 8.90
+
+    OrderPaymentResponse:
+      type: object
+      required:
+        - paidByUserId
+        - amount
+        - currency
+        - cardHolderName
+        - cardLast4
+        - providerReference
+        - pickupToken
+        - paidAt
+      properties:
+        paidByUserId:
+          type: integer
+          format: int64
+          example: 2
+        amount:
+          type: number
+          format: double
+          example: 8.90
+        currency:
+          type: string
+          example: EUR
+        cardHolderName:
+          type: string
+          example: Jamie Smith
+        cardLast4:
+          type: string
+          example: '4242'
+        providerReference:
+          type: string
+          example: PAY-ABC1234DEF56
+        pickupToken:
+          type: string
+          example: SAVR-AB12CD34EF56
+        paidAt:
+          type: string
+          format: date-time
+          example: 2025-04-08T16:33:00Z
+        transferredToBusinessAt:
+          type: string
+          format: date-time
+          nullable: true
+          example: 2025-04-08T19:10:00Z
+        transferReference:
+          type: string
+          nullable: true
+          example: TRN-ABC1234DEF56
+
+    OrderPickupPassResponse:
+      type: object
+      required:
+        - orderId
+        - businessId
+        - pickupToken
+        - qrPayload
+        - amount
+        - currency
+        - issuedAt
+        - paidAt
+        - providerReference
+      properties:
+        orderId:
+          type: integer
+          format: int64
+          example: 500
+        businessId:
+          type: integer
+          format: int64
+          example: 10
+        pickupToken:
+          type: string
+          example: SAVR-AB12CD34EF56
+        qrPayload:
+          type: string
+          example: SAVR|ORDER|500|BUSINESS|10|TOKEN|SAVR-AB12CD34EF56
+        amount:
+          type: number
+          format: double
+          example: 8.90
+        currency:
+          type: string
+          example: EUR
+        issuedAt:
+          type: string
+          format: date-time
+          example: 2025-04-08T16:33:00Z
+        paidAt:
+          type: string
+          format: date-time
+          example: 2025-04-08T16:33:00Z
+        providerReference:
+          type: string
+          example: PAY-ABC1234DEF56
 
     PickupConfirmation:
       type: object
@@ -2357,7 +2515,7 @@ components:
         - EXPIRED
         - CANCELLED
 
-    ReservationStatus:
+    OrderStatus:
       type: string
       enum:
         - ACTIVE

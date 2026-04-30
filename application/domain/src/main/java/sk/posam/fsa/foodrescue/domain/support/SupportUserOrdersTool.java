@@ -2,8 +2,8 @@ package sk.posam.fsa.foodrescue.domain.support;
 
 import sk.posam.fsa.foodrescue.domain.offer.Offer;
 import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
-import sk.posam.fsa.foodrescue.domain.reservation.Reservation;
-import sk.posam.fsa.foodrescue.domain.reservation.ReservationRepository;
+import sk.posam.fsa.foodrescue.domain.order.Order;
+import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
 import sk.posam.fsa.foodrescue.domain.user.User;
 
 import java.util.LinkedHashMap;
@@ -12,22 +12,22 @@ import java.util.Map;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
-public class SupportUserReservationsTool implements SupportAssistantTool {
+public class SupportUserOrdersTool implements SupportAssistantTool {
 
-    private final ReservationRepository reservationRepository;
+    private final OrderRepository orderRepository;
     private final OfferRepository offerRepository;
 
-    public SupportUserReservationsTool(ReservationRepository reservationRepository,
-                                       OfferRepository offerRepository) {
-        this.reservationRepository = reservationRepository;
+    public SupportUserOrdersTool(OrderRepository orderRepository,
+                                 OfferRepository offerRepository) {
+        this.orderRepository = orderRepository;
         this.offerRepository = offerRepository;
     }
 
     @Override
     public SupportAssistantToolDefinition definition() {
         return new SupportAssistantToolDefinition(
-                "get_user_reservations",
-                "Return the authenticated user's latest reservations together with linked offer details.",
+                "get_user_orders",
+                "Return the authenticated user's latest paid orders together with linked offer details.",
                 Map.of(
                         "type", "object",
                         "properties", Map.of(),
@@ -46,9 +46,9 @@ public class SupportUserReservationsTool implements SupportAssistantTool {
             );
         }
 
-        List<Reservation> reservations = reservationRepository.findAllByUserId(currentUser.getId());
-        List<Long> offerIds = reservations.stream()
-                .map(Reservation::getOfferId)
+        List<Order> orders = orderRepository.findAllByUserId(currentUser.getId());
+        List<Long> offerIds = orders.stream()
+                .map(order -> order.getItem() == null ? null : order.getItem().getOfferId())
                 .filter(java.util.Objects::nonNull)
                 .distinct()
                 .toList();
@@ -60,21 +60,21 @@ public class SupportUserReservationsTool implements SupportAssistantTool {
 
         return Map.of(
                 "authenticated", true,
-                "reservationCount", reservations.size(),
-                "reservations", reservations.stream()
+                "orderCount", orders.size(),
+                "orders", orders.stream()
                         .limit(5)
-                        .map(reservation -> reservationSummary(reservation, offersById.get(reservation.getOfferId())))
+                        .map(order -> orderSummary(order, offersById.get(order.getItem() == null ? null : order.getItem().getOfferId())))
                         .toList()
         );
     }
 
-    private Map<String, Object> reservationSummary(Reservation reservation, Offer offer) {
+    private Map<String, Object> orderSummary(Order order, Offer offer) {
         Map<String, Object> summary = new LinkedHashMap<>();
-        summary.put("reservationId", reservation.getId());
-        summary.put("status", reservation.getStatus() == null ? null : reservation.getStatus().name());
-        summary.put("quantity", reservation.getQuantity());
-        summary.put("createdAt", reservation.getCreatedAt());
-        summary.put("cancelledAt", reservation.getCancelledAt());
+        summary.put("orderId", order.getId());
+        summary.put("status", order.getStatus() == null ? null : order.getStatus().name());
+        summary.put("quantity", order.getItem() == null ? null : order.getItem().getQuantity());
+        summary.put("createdAt", order.getCreatedAt());
+        summary.put("businessName", order.getBusinessName());
         summary.put("offer", offer == null ? null : offerSummary(offer));
         return summary;
     }

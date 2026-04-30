@@ -1,0 +1,380 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="baseline-001-create-current-schema" author="savr">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <tableExists tableName="app_user"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="app_user">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="first_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="last_name" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="email" type="VARCHAR(255)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="password" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <createTable tableName="business">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="owner_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(120)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="street" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="city" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="postal_code" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="country" type="VARCHAR(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="latitude" type="DOUBLE PRECISION"/>
+            <column name="longitude" type="DOUBLE PRECISION"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addUniqueConstraint tableName="business"
+                             columnNames="owner_id,name"
+                             constraintName="uk_business_owner_name"/>
+
+        <addForeignKeyConstraint baseTableName="business"
+                                 baseColumnNames="owner_id"
+                                 referencedTableName="app_user"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_business_owner"/>
+
+        <createTable tableName="offer">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="business_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(160)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="description" type="VARCHAR(1000)"/>
+            <column name="image_url" type="VARCHAR(1024)"/>
+            <column name="price" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="original_price" type="DECIMAL(10,2)"/>
+            <column name="quantity_available" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_street" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_city" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_postal_code" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_country" type="VARCHAR(80)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_latitude" type="DOUBLE PRECISION"/>
+            <column name="pickup_longitude" type="DOUBLE PRECISION"/>
+            <column name="pickup_note" type="VARCHAR(255)"/>
+            <column name="pickup_time_from" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_time_to" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="offer"
+                                 baseColumnNames="business_id"
+                                 referencedTableName="business"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_offer_business"/>
+
+        <createTable tableName="offer_item">
+            <column name="offer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="name" type="VARCHAR(160)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="quantity" type="INT">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="offer_item"
+                       columnNames="offer_id,item_order"
+                       constraintName="pk_offer_item"/>
+
+        <addForeignKeyConstraint baseTableName="offer_item"
+                                 baseColumnNames="offer_id"
+                                 referencedTableName="offer"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_offer_item_offer"/>
+
+        <createTable tableName="customer_order">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="business_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="business_name" type="VARCHAR(160)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_offer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_quantity" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_title" type="VARCHAR(160)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="item_image_url" type="VARCHAR(500)"/>
+            <column name="item_unit_price" type="DECIMAL(10,2)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_street" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_city" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_postal_code" type="VARCHAR(50)"/>
+            <column name="pickup_country" type="VARCHAR(255)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_latitude" type="DOUBLE PRECISION"/>
+            <column name="pickup_longitude" type="DOUBLE PRECISION"/>
+            <column name="pickup_note" type="VARCHAR(500)"/>
+            <column name="pickup_time_from" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="pickup_time_to" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="status" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="cancelled_at" type="TIMESTAMP"/>
+            <column name="pickup_confirmed_by_user_id" type="BIGINT"/>
+            <column name="pickup_confirmed_at" type="TIMESTAMP"/>
+            <column name="payment_paid_by_user_id" type="BIGINT"/>
+            <column name="payment_amount" type="DECIMAL(10,2)"/>
+            <column name="payment_currency" type="VARCHAR(3)"/>
+            <column name="payment_card_holder_name" type="VARCHAR(120)"/>
+            <column name="payment_card_last4" type="VARCHAR(4)"/>
+            <column name="payment_provider_reference" type="VARCHAR(64)"/>
+            <column name="payment_pickup_token" type="VARCHAR(64)"/>
+            <column name="payment_paid_at" type="TIMESTAMP"/>
+            <column name="payment_transferred_at" type="TIMESTAMP"/>
+            <column name="payment_transfer_reference" type="VARCHAR(64)"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="customer_order"
+                                 baseColumnNames="business_id"
+                                 referencedTableName="business"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_customer_order_business"/>
+
+        <addForeignKeyConstraint baseTableName="customer_order"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="app_user"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_customer_order_user"/>
+
+        <addForeignKeyConstraint baseTableName="customer_order"
+                                 baseColumnNames="item_offer_id"
+                                 referencedTableName="offer"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_customer_order_offer"/>
+
+        <createTable tableName="notification">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="type" type="VARCHAR(40)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="title" type="VARCHAR(160)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="message" type="VARCHAR(1000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="read_at" type="TIMESTAMP"/>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="notification"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="app_user"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_notification_user"/>
+
+        <createTable tableName="review">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reservation_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="business_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rating" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="VARCHAR(1000)"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="review"
+                                 baseColumnNames="business_id"
+                                 referencedTableName="business"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_review_business"/>
+
+        <addForeignKeyConstraint baseTableName="review"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="app_user"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_review_user"/>
+
+        <createTable tableName="support_conversation">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="public_id" type="VARCHAR(64)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="user_id" type="BIGINT"/>
+            <column name="source_page" type="VARCHAR(255)"/>
+            <column name="locale" type="VARCHAR(32)"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="support_conversation"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="app_user"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_support_conversation_user"/>
+
+        <createIndex tableName="support_conversation"
+                     indexName="idx_support_conversation_public_id">
+            <column name="public_id"/>
+        </createIndex>
+
+        <createTable tableName="support_conversation_message">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="conversation_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="VARCHAR(4000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="support_conversation_message"
+                                 baseColumnNames="conversation_id"
+                                 referencedTableName="support_conversation"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_support_message_conversation"/>
+
+        <createIndex tableName="support_conversation_message"
+                     indexName="idx_support_message_conversation_created_at">
+            <column name="conversation_id"/>
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="baseline-002-align-existing-order-coordinate-types" author="savr">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="customer_order"/>
+        </preConditions>
+
+        <modifyDataType tableName="customer_order"
+                        columnName="pickup_latitude"
+                        newDataType="DOUBLE PRECISION"/>
+        <modifyDataType tableName="customer_order"
+                        columnName="pickup_longitude"
+                        newDataType="DOUBLE PRECISION"/>
+    </changeSet>
+</databaseChangeLog>

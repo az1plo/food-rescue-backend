@@ -58,13 +58,68 @@
         </attributes>
     </embeddable>
 
-    <embeddable class="sk.posam.fsa.foodrescue.domain.reservation.PickupConfirmation" access="FIELD">
+    <embeddable class="sk.posam.fsa.foodrescue.domain.order.OrderItem" access="FIELD">
+        <attributes>
+            <basic name="offerId">
+                <column name="offer_id"/>
+            </basic>
+            <basic name="quantity">
+                <column name="quantity"/>
+            </basic>
+            <basic name="title">
+                <column name="title"/>
+            </basic>
+            <basic name="imageUrl">
+                <column name="image_url"/>
+            </basic>
+            <basic name="unitPrice">
+                <column name="unit_price"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+    <embeddable class="sk.posam.fsa.foodrescue.domain.order.OrderPickupConfirmation" access="FIELD">
         <attributes>
             <basic name="confirmedByUserId">
                 <column name="confirmed_by_user_id"/>
             </basic>
             <basic name="confirmedAt">
                 <column name="confirmed_at"/>
+            </basic>
+        </attributes>
+    </embeddable>
+
+    <embeddable class="sk.posam.fsa.foodrescue.domain.order.OrderPayment" access="FIELD">
+        <attributes>
+            <basic name="paidByUserId">
+                <column name="paid_by_user_id"/>
+            </basic>
+            <basic name="amount">
+                <column name="amount"/>
+            </basic>
+            <basic name="currency">
+                <column name="currency"/>
+            </basic>
+            <basic name="cardHolderName">
+                <column name="card_holder_name"/>
+            </basic>
+            <basic name="cardLast4">
+                <column name="card_last4"/>
+            </basic>
+            <basic name="providerReference">
+                <column name="provider_reference"/>
+            </basic>
+            <basic name="pickupToken">
+                <column name="pickup_token"/>
+            </basic>
+            <basic name="paidAt">
+                <column name="paid_at"/>
+            </basic>
+            <basic name="transferredToBusinessAt">
+                <column name="transferred_at"/>
+            </basic>
+            <basic name="transferReference">
+                <column name="transfer_reference"/>
             </basic>
         </attributes>
     </embeddable>
@@ -204,25 +259,73 @@
         </attributes>
     </entity>
 
-    <entity class="sk.posam.fsa.foodrescue.domain.reservation.Reservation" access="FIELD">
-        <table name="reservation"/>
+    <entity class="sk.posam.fsa.foodrescue.domain.order.Order" access="FIELD">
+        <table name="customer_order"/>
         <attributes>
             <id name="id">
                 <column name="id"/>
                 <generated-value strategy="IDENTITY"/>
             </id>
-            <basic name="offerId">
-                <column name="offer_id"/>
+            <basic name="businessId">
+                <column name="business_id"/>
             </basic>
             <basic name="userId">
                 <column name="user_id"/>
             </basic>
+            <basic name="businessName">
+                <column name="business_name"/>
+            </basic>
+            <embedded name="item">
+                <attribute-override name="offerId">
+                    <column name="item_offer_id"/>
+                </attribute-override>
+                <attribute-override name="quantity">
+                    <column name="item_quantity"/>
+                </attribute-override>
+                <attribute-override name="title">
+                    <column name="item_title"/>
+                </attribute-override>
+                <attribute-override name="imageUrl">
+                    <column name="item_image_url"/>
+                </attribute-override>
+                <attribute-override name="unitPrice">
+                    <column name="item_unit_price"/>
+                </attribute-override>
+            </embedded>
+            <embedded name="pickupLocation">
+                <attribute-override name="address.street">
+                    <column name="pickup_street"/>
+                </attribute-override>
+                <attribute-override name="address.city">
+                    <column name="pickup_city"/>
+                </attribute-override>
+                <attribute-override name="address.postalCode">
+                    <column name="pickup_postal_code"/>
+                </attribute-override>
+                <attribute-override name="address.country">
+                    <column name="pickup_country"/>
+                </attribute-override>
+                <attribute-override name="address.latitude">
+                    <column name="pickup_latitude"/>
+                </attribute-override>
+                <attribute-override name="address.longitude">
+                    <column name="pickup_longitude"/>
+                </attribute-override>
+                <attribute-override name="note">
+                    <column name="pickup_note"/>
+                </attribute-override>
+            </embedded>
+            <embedded name="pickupTimeWindow">
+                <attribute-override name="from">
+                    <column name="pickup_time_from"/>
+                </attribute-override>
+                <attribute-override name="to">
+                    <column name="pickup_time_to"/>
+                </attribute-override>
+            </embedded>
             <basic name="status">
                 <column name="status"/>
                 <enumerated>STRING</enumerated>
-            </basic>
-            <basic name="quantity">
-                <column name="quantity"/>
             </basic>
             <basic name="createdAt">
                 <column name="created_at"/>
@@ -236,6 +339,38 @@
                 </attribute-override>
                 <attribute-override name="confirmedAt">
                     <column name="pickup_confirmed_at"/>
+                </attribute-override>
+            </embedded>
+            <embedded name="payment">
+                <attribute-override name="paidByUserId">
+                    <column name="payment_paid_by_user_id"/>
+                </attribute-override>
+                <attribute-override name="amount">
+                    <column name="payment_amount"/>
+                </attribute-override>
+                <attribute-override name="currency">
+                    <column name="payment_currency"/>
+                </attribute-override>
+                <attribute-override name="cardHolderName">
+                    <column name="payment_card_holder_name"/>
+                </attribute-override>
+                <attribute-override name="cardLast4">
+                    <column name="payment_card_last4"/>
+                </attribute-override>
+                <attribute-override name="providerReference">
+                    <column name="payment_provider_reference"/>
+                </attribute-override>
+                <attribute-override name="pickupToken">
+                    <column name="payment_pickup_token"/>
+                </attribute-override>
+                <attribute-override name="paidAt">
+                    <column name="payment_paid_at"/>
+                </attribute-override>
+                <attribute-override name="transferredToBusinessAt">
+                    <column name="payment_transferred_at"/>
+                </attribute-override>
+                <attribute-override name="transferReference">
+                    <column name="payment_transfer_reference"/>
                 </attribute-override>
             </embedded>
         </attributes>

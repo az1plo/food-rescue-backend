@@ -4,12 +4,12 @@ import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
 import sk.posam.fsa.foodrescue.domain.shared.ValidationException;
 import sk.posam.fsa.foodrescue.domain.business.Business;
 import sk.posam.fsa.foodrescue.domain.offer.Offer;
-import sk.posam.fsa.foodrescue.domain.reservation.Reservation;
+import sk.posam.fsa.foodrescue.domain.order.Order;
+import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
 import sk.posam.fsa.foodrescue.domain.user.User;
 import sk.posam.fsa.foodrescue.domain.shared.AddressCoordinatesProvider;
 import sk.posam.fsa.foodrescue.domain.business.BusinessRepository;
 import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
-import sk.posam.fsa.foodrescue.domain.reservation.ReservationRepository;
 
 import java.util.List;
 
@@ -17,16 +17,16 @@ public class OfferService implements OfferFacade {
 
     private final OfferRepository offerRepository;
     private final BusinessRepository businessRepository;
-    private final ReservationRepository reservationRepository;
+    private final OrderRepository orderRepository;
     private final AddressCoordinatesProvider addressCoordinatesProvider;
 
     public OfferService(OfferRepository offerRepository,
                         BusinessRepository businessRepository,
-                        ReservationRepository reservationRepository,
+                        OrderRepository orderRepository,
                         AddressCoordinatesProvider addressCoordinatesProvider) {
         this.offerRepository = offerRepository;
         this.businessRepository = businessRepository;
-        this.reservationRepository = reservationRepository;
+        this.orderRepository = orderRepository;
         this.addressCoordinatesProvider = addressCoordinatesProvider;
     }
 
@@ -58,7 +58,7 @@ public class OfferService implements OfferFacade {
             return offer;
         }
 
-        if (hasUserReservationForOffer(currentUser, offer.getId())) {
+        if (hasUserOrderForOffer(currentUser, offer.getId())) {
             return offer;
         }
 
@@ -157,13 +157,15 @@ public class OfferService implements OfferFacade {
         }
     }
 
-    private boolean hasUserReservationForOffer(User currentUser, Long offerId) {
+    private boolean hasUserOrderForOffer(User currentUser, Long offerId) {
         if (currentUser == null || currentUser.getId() == null || offerId == null) {
             return false;
         }
 
-        return reservationRepository.findAllByUserId(currentUser.getId()).stream()
-                .map(Reservation::getOfferId)
+        return orderRepository.findAllByUserId(currentUser.getId()).stream()
+                .map(Order::getItem)
+                .filter(java.util.Objects::nonNull)
+                .map(item -> item.getOfferId())
                 .anyMatch(offerId::equals);
     }
 

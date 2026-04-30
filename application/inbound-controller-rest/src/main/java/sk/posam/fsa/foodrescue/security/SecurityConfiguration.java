@@ -62,11 +62,11 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.PUT, "/offers/*").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/offers/*").authenticated()
 
-                .requestMatchers(HttpMethod.POST, "/reservations").authenticated()
-                .requestMatchers(HttpMethod.GET, "/reservations").authenticated()
-                .requestMatchers(HttpMethod.GET, "/reservations/*").authenticated()
-                .requestMatchers(HttpMethod.POST, "/reservations/*/cancel").authenticated()
-                .requestMatchers(HttpMethod.POST, "/reservations/*/pickup").authenticated()
+                .requestMatchers(HttpMethod.POST, "/orders").authenticated()
+                .requestMatchers(HttpMethod.GET, "/orders").authenticated()
+                .requestMatchers(HttpMethod.GET, "/orders/*").authenticated()
+                .requestMatchers(HttpMethod.GET, "/orders/*/pickup-pass").authenticated()
+                .requestMatchers(HttpMethod.POST, "/orders/*/pickup").authenticated()
 
                 .requestMatchers(HttpMethod.GET, "/notifications").authenticated()
                 .requestMatchers(HttpMethod.GET, "/notifications/*").authenticated()

@@ -19,11 +19,11 @@ public class StubSupportAssistantProvider implements SupportAssistantProvider {
                 ? ""
                 : firstName.trim() + ", ";
 
-        if (containsAny(normalizedMessage, "reserve", "reservation", "book")) {
+        if (containsAny(normalizedMessage, "reserve", "reservation", "book", "buy", "order", "pay")) {
             return new SupportAssistantReply(
                     ASSISTANT_NAME,
-                    greetingPrefix + "open the offer details page, review the pickup window, and reserve the offer when it is still available. If you are not signed in, the app will prompt you to log in before confirming the reservation.",
-                    List.of("What does unavailable mean?", "How does pickup work?", "Can I cancel a reservation?")
+                    greetingPrefix + "open the offer details page, add the offer to your cart, and complete payment to create a pickup order. If you are not signed in, the app will prompt you to log in before checkout.",
+                    List.of("What does unavailable mean?", "How does pickup work?", "Where do I see my paid orders?")
             );
         }
 
@@ -31,7 +31,7 @@ public class StubSupportAssistantProvider implements SupportAssistantProvider {
             return new SupportAssistantReply(
                     ASSISTANT_NAME,
                     greetingPrefix + "pickup windows show when the business expects the rescue bag to be collected. If the time has passed, the offer will eventually become unavailable or expired in the marketplace.",
-                    List.of("How do I reserve an offer?", "Why is an offer expired?", "How do businesses set pickup times?")
+                    List.of("How do I pay for an offer?", "Why is an offer expired?", "How do businesses set pickup times?")
             );
         }
 
@@ -61,8 +61,8 @@ public class StubSupportAssistantProvider implements SupportAssistantProvider {
 
         return new SupportAssistantReply(
                 ASSISTANT_NAME,
-                greetingPrefix + "I can help with marketplace browsing, reservations, pickup windows, business publishing, pricing, and distance-based map filtering. Ask me a specific question and I will point you in the right direction.",
-                List.of("How do I reserve an offer?", "How does pickup work?", "How can a business publish offers?")
+                greetingPrefix + "I can help with marketplace browsing, orders, pickup windows, business publishing, pricing, and distance-based map filtering. Ask me a specific question and I will point you in the right direction.",
+                List.of("How do I pay for an offer?", "How does pickup work?", "How can a business publish offers?")
         );
     }
 

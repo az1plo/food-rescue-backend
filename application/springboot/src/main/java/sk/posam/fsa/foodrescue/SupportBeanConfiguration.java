@@ -8,7 +8,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import sk.posam.fsa.foodrescue.domain.business.BusinessRepository;
 import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
-import sk.posam.fsa.foodrescue.domain.reservation.ReservationRepository;
+import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
 import sk.posam.fsa.foodrescue.domain.review.ReviewRepository;
 import sk.posam.fsa.foodrescue.domain.support.SupportAssistantTool;
 import sk.posam.fsa.foodrescue.domain.support.SupportAssistantProvider;
@@ -17,7 +17,7 @@ import sk.posam.fsa.foodrescue.domain.support.SupportBusinessLookupTool;
 import sk.posam.fsa.foodrescue.domain.support.SupportConversationRepository;
 import sk.posam.fsa.foodrescue.domain.support.SupportOfferLookupTool;
 import sk.posam.fsa.foodrescue.domain.support.SupportService;
-import sk.posam.fsa.foodrescue.domain.support.SupportUserReservationsTool;
+import sk.posam.fsa.foodrescue.domain.support.SupportUserOrdersTool;
 import sk.posam.fsa.foodrescue.openai.OpenAiSupportAssistantProvider;
 import sk.posam.fsa.foodrescue.supportstub.StubSupportAssistantProvider;
 
@@ -46,9 +46,9 @@ public class SupportBeanConfiguration {
     }
 
     @Bean
-    public SupportAssistantTool supportUserReservationsTool(ReservationRepository reservationRepository,
-                                                            OfferRepository offerRepository) {
-        return new SupportUserReservationsTool(reservationRepository, offerRepository);
+    public SupportAssistantTool supportUserOrdersTool(OrderRepository orderRepository,
+                                                      OfferRepository offerRepository) {
+        return new SupportUserOrdersTool(orderRepository, offerRepository);
     }
 
     @Bean

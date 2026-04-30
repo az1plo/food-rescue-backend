@@ -3,15 +3,15 @@ package sk.posam.fsa.foodrescue.domain.business;
 import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
 import sk.posam.fsa.foodrescue.domain.business.Business;
 import sk.posam.fsa.foodrescue.domain.offer.Offer;
-import sk.posam.fsa.foodrescue.domain.reservation.Reservation;
+import sk.posam.fsa.foodrescue.domain.order.Order;
 import sk.posam.fsa.foodrescue.domain.user.User;
 import sk.posam.fsa.foodrescue.domain.offer.OfferStatus;
-import sk.posam.fsa.foodrescue.domain.reservation.ReservationStatus;
+import sk.posam.fsa.foodrescue.domain.order.OrderStatus;
 import sk.posam.fsa.foodrescue.domain.business.BusinessAnalyticsSnapshot;
 import sk.posam.fsa.foodrescue.domain.offer.OfferItem;
 import sk.posam.fsa.foodrescue.domain.business.BusinessRepository;
 import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
-import sk.posam.fsa.foodrescue.domain.reservation.ReservationRepository;
+import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
@@ -42,14 +42,14 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
 
     private final BusinessRepository businessRepository;
     private final OfferRepository offerRepository;
-    private final ReservationRepository reservationRepository;
+    private final OrderRepository orderRepository;
 
     public BusinessAnalyticsService(BusinessRepository businessRepository,
                                     OfferRepository offerRepository,
-                                    ReservationRepository reservationRepository) {
+                                    OrderRepository orderRepository) {
         this.businessRepository = businessRepository;
         this.offerRepository = offerRepository;
-        this.reservationRepository = reservationRepository;
+        this.orderRepository = orderRepository;
     }
 
     @Override
@@ -62,15 +62,15 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
                 .filter(offer -> offer.getId() != null)
                 .collect(Collectors.toMap(Offer::getId, offer -> offer));
 
-        List<Reservation> reservations = offersById.isEmpty()
+        List<Order> orders = offersById.isEmpty()
                 ? List.of()
-                : reservationRepository.findAllByOfferIds(new ArrayList<>(offersById.keySet()));
+                : orderRepository.findAllByBusinessId(businessId);
 
-        Map<Long, List<Reservation>> reservationsByOfferId = reservations.stream()
-                .filter(reservation -> reservation.getOfferId() != null)
-                .collect(Collectors.groupingBy(Reservation::getOfferId));
+        Map<Long, List<Order>> ordersByOfferId = orders.stream()
+                .filter(order -> order.getItem() != null && order.getItem().getOfferId() != null)
+                .collect(Collectors.groupingBy(order -> order.getItem().getOfferId()));
 
-        BusinessAnalyticsSnapshot.Overview overview = buildOverview(offers, reservations, reservationsByOfferId, offersById);
+        BusinessAnalyticsSnapshot.Overview overview = buildOverview(offers, orders, ordersByOfferId, offersById);
 
         return new BusinessAnalyticsSnapshot(
                 business.getId(),
@@ -78,16 +78,16 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
                 LocalDateTime.now(),
                 overview,
                 buildCatalogStatus(offers),
-                buildDailyActivity(offers, reservations),
-                buildDaypartPerformance(offers, reservationsByOfferId, offersById),
-                buildTopItems(offers, reservationsByOfferId),
-                buildInsights(business, overview, offers, reservations, reservationsByOfferId)
+                buildDailyActivity(offers, orders),
+                buildDaypartPerformance(offers, ordersByOfferId),
+                buildTopItems(offers, ordersByOfferId),
+                buildInsights(business, overview, offers, orders, ordersByOfferId)
         );
     }
 
     private BusinessAnalyticsSnapshot.Overview buildOverview(List<Offer> offers,
-                                                             List<Reservation> reservations,
-                                                             Map<Long, List<Reservation>> reservationsByOfferId,
+                                                             List<Order> orders,
+                                                             Map<Long, List<Order>> ordersByOfferId,
                                                              Map<Long, Offer> offersById) {
         int totalOffers = offers.size();
         int availableOffers = (int) offers.stream()
@@ -96,24 +96,22 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
         int offersClaimed = (int) offers.stream()
                 .filter(offer -> offer.getId() != null)
                 .filter(offer -> {
-                    List<Reservation> offerReservations = reservationsByOfferId.get(offer.getId());
-                    return offerReservations != null && !offerReservations.isEmpty();
+                    List<Order> offerOrders = ordersByOfferId.get(offer.getId());
+                    return offerOrders != null && !offerOrders.isEmpty();
                 })
                 .count();
-        int activeReservations = countReservationsByStatus(reservations, ReservationStatus.ACTIVE);
-        int completedPickups = countReservationsByStatus(reservations, ReservationStatus.PICKED_UP);
-        int cancelledReservations = countReservationsByStatus(reservations, ReservationStatus.CANCELLED);
+        int activeReservations = countOrdersByStatus(orders, OrderStatus.ACTIVE);
+        int completedPickups = countOrdersByStatus(orders, OrderStatus.PICKED_UP);
+        int cancelledReservations = countOrdersByStatus(orders, OrderStatus.CANCELLED);
 
-        BigDecimal recoveredRevenue = reservations.stream()
-                .filter(reservation -> reservation.getStatus() == ReservationStatus.PICKED_UP)
-                .map(reservation -> priceFor(reservation.getOfferId(), offersById)
-                        .multiply(BigDecimal.valueOf(reservation.getQuantity() == null ? 1L : reservation.getQuantity())))
+        BigDecimal recoveredRevenue = orders.stream()
+                .filter(order -> order.getStatus() == OrderStatus.PICKED_UP)
+                .map(order -> order.getPayment() == null ? BigDecimal.ZERO : order.getPayment().getAmount())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-        BigDecimal pendingReservedRevenue = reservations.stream()
-                .filter(reservation -> reservation.getStatus() == ReservationStatus.ACTIVE)
-                .map(reservation -> priceFor(reservation.getOfferId(), offersById)
-                        .multiply(BigDecimal.valueOf(reservation.getQuantity() == null ? 1L : reservation.getQuantity())))
+        BigDecimal pendingReservedRevenue = orders.stream()
+                .filter(order -> order.getStatus() == OrderStatus.ACTIVE)
+                .map(order -> order.getPayment() == null ? BigDecimal.ZERO : order.getPayment().getAmount())
                 .reduce(BigDecimal.ZERO, BigDecimal::add);
 
         return new BusinessAnalyticsSnapshot.Overview(
@@ -126,9 +124,9 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
                 recoveredRevenue,
                 pendingReservedRevenue,
                 percentage(offersClaimed, totalOffers),
-                percentage(completedPickups, reservations.size()),
-                percentage(cancelledReservations, reservations.size()),
-                averageHoursToFirstReservation(offers, reservationsByOfferId)
+                percentage(completedPickups, orders.size()),
+                percentage(cancelledReservations, orders.size()),
+                averageHoursToFirstReservation(offers, ordersByOfferId)
         );
     }
 
@@ -159,7 +157,7 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
     }
 
     private List<BusinessAnalyticsSnapshot.DailyActivityPoint> buildDailyActivity(List<Offer> offers,
-                                                                                  List<Reservation> reservations) {
+                                                                                  List<Order> orders) {
         LocalDate today = LocalDate.now();
         LocalDate startDate = today.minusDays(13);
         Map<LocalDate, DailyActivityCounter> countersByDate = new LinkedHashMap<>();
@@ -173,12 +171,12 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
             incrementIfTracked(countersByDate, toDate(offer.getCreatedAt()), DailyActivityCounter::incrementOffersPublished);
         }
 
-        for (Reservation reservation : reservations) {
-            incrementIfTracked(countersByDate, toDate(reservation.getCreatedAt()), DailyActivityCounter::incrementReservationsCreated);
-            incrementIfTracked(countersByDate, toDate(reservation.getCancelledAt()), DailyActivityCounter::incrementCancellations);
+        for (Order order : orders) {
+            incrementIfTracked(countersByDate, toDate(order.getCreatedAt()), DailyActivityCounter::incrementReservationsCreated);
+            incrementIfTracked(countersByDate, toDate(order.getCancelledAt()), DailyActivityCounter::incrementCancellations);
             incrementIfTracked(
                     countersByDate,
-                    reservation.getPickupConfirmation() == null ? null : toDate(reservation.getPickupConfirmation().getConfirmedAt()),
+                    order.getPickupConfirmation() == null ? null : toDate(order.getPickupConfirmation().getConfirmedAt()),
                     DailyActivityCounter::incrementPickupsConfirmed
             );
         }
@@ -195,8 +193,7 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
     }
 
     private List<BusinessAnalyticsSnapshot.DaypartPerformance> buildDaypartPerformance(List<Offer> offers,
-                                                                                       Map<Long, List<Reservation>> reservationsByOfferId,
-                                                                                       Map<Long, Offer> offersById) {
+                                                                                       Map<Long, List<Order>> ordersByOfferId) {
         Map<String, DaypartCounter> counters = DAYPART_SLOTS.stream()
                 .collect(Collectors.toMap(DaypartSlot::key, slot -> new DaypartCounter(), (first, second) -> first, LinkedHashMap::new));
 
@@ -205,27 +202,25 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
             DaypartCounter counter = counters.get(slot.key());
             counter.incrementOffersScheduled();
 
-            List<Reservation> offerReservations = offer.getId() == null
+            List<Order> offerOrders = offer.getId() == null
                     ? List.of()
-                    : reservationsByOfferId.getOrDefault(offer.getId(), List.of());
+                    : ordersByOfferId.getOrDefault(offer.getId(), List.of());
 
-            if (!offerReservations.isEmpty()) {
+            if (!offerOrders.isEmpty()) {
                 counter.incrementOffersClaimed();
             }
 
-            boolean pickedUp = offerReservations.stream()
-                    .anyMatch(reservation -> reservation.getStatus() == ReservationStatus.PICKED_UP);
-            int pickedQuantity = offerReservations.stream()
-                    .filter(reservation -> reservation.getStatus() == ReservationStatus.PICKED_UP)
-                    .map(Reservation::getQuantity)
-                    .filter(Objects::nonNull)
-                    .mapToInt(Integer::intValue)
-                    .sum();
+            List<Order> pickedUpOrders = offerOrders.stream()
+                    .filter(order -> order.getStatus() == OrderStatus.PICKED_UP)
+                    .toList();
 
-            if (pickedUp) {
+            if (!pickedUpOrders.isEmpty()) {
                 counter.incrementPickupsConfirmed();
-                counter.addRecoveredRevenue(priceFor(offer.getId(), offersById)
-                        .multiply(BigDecimal.valueOf(Math.max(pickedQuantity, 1))));
+                counter.addRecoveredRevenue(
+                        pickedUpOrders.stream()
+                                .map(order -> order.getPayment() == null ? BigDecimal.ZERO : order.getPayment().getAmount())
+                                .reduce(BigDecimal.ZERO, BigDecimal::add)
+                );
             }
         }
 
@@ -247,29 +242,29 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
     }
 
     private List<BusinessAnalyticsSnapshot.ItemPerformance> buildTopItems(List<Offer> offers,
-                                                                          Map<Long, List<Reservation>> reservationsByOfferId) {
+                                                                          Map<Long, List<Order>> ordersByOfferId) {
         Map<String, ItemCounter> counters = new HashMap<>();
 
         for (Offer offer : offers) {
-            List<Reservation> offerReservations = offer.getId() == null
+            List<Order> offerOrders = offer.getId() == null
                     ? List.of()
-                    : reservationsByOfferId.getOrDefault(offer.getId(), List.of());
+                    : ordersByOfferId.getOrDefault(offer.getId(), List.of());
 
-            int reservedMultiplier = offerReservations.stream()
-                    .filter(reservation -> reservation.getStatus() == ReservationStatus.ACTIVE || reservation.getStatus() == ReservationStatus.PICKED_UP)
-                    .map(Reservation::getQuantity)
+            int reservedMultiplier = offerOrders.stream()
+                    .filter(order -> order.getStatus() == OrderStatus.ACTIVE || order.getStatus() == OrderStatus.PICKED_UP)
+                    .map(order -> order.getItem() == null ? null : order.getItem().getQuantity())
                     .filter(Objects::nonNull)
                     .mapToInt(Integer::intValue)
                     .sum();
             boolean reserved = reservedMultiplier > 0;
-            int pickedQuantityMultiplier = offerReservations.stream()
-                    .filter(reservation -> reservation.getStatus() == ReservationStatus.PICKED_UP)
-                    .map(Reservation::getQuantity)
+            int pickedQuantityMultiplier = offerOrders.stream()
+                    .filter(order -> order.getStatus() == OrderStatus.PICKED_UP)
+                    .map(order -> order.getItem() == null ? null : order.getItem().getQuantity())
                     .filter(Objects::nonNull)
                     .mapToInt(Integer::intValue)
                     .sum();
-            boolean pickedUp = offerReservations.stream()
-                    .anyMatch(reservation -> reservation.getStatus() == ReservationStatus.PICKED_UP);
+            boolean pickedUp = offerOrders.stream()
+                    .anyMatch(order -> order.getStatus() == OrderStatus.PICKED_UP);
 
             for (OfferItem item : offer.getItems()) {
                 if (item == null || item.getName() == null || item.getQuantity() == null) {
@@ -314,8 +309,8 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
     private List<BusinessAnalyticsSnapshot.Insight> buildInsights(Business business,
                                                                   BusinessAnalyticsSnapshot.Overview overview,
                                                                   List<Offer> offers,
-                                                                  List<Reservation> reservations,
-                                                                  Map<Long, List<Reservation>> reservationsByOfferId) {
+                                                                  List<Order> orders,
+                                                                  Map<Long, List<Order>> ordersByOfferId) {
         if (offers.isEmpty()) {
             return List.of(new BusinessAnalyticsSnapshot.Insight(
                     "info",
@@ -330,27 +325,27 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
             insights.add(new BusinessAnalyticsSnapshot.Insight(
                     "success",
                     "Reserved revenue is already in motion",
-                    formatCurrency(overview.pendingReservedRevenue()) + " are currently tied to active reservations waiting for pickup."
+                    formatCurrency(overview.pendingReservedRevenue()) + " are currently tied to paid orders waiting for pickup."
             ));
         }
 
-        if (reservations.size() >= 2 && overview.cancellationRate() >= 25.0) {
+        if (orders.size() >= 2 && overview.cancellationRate() >= 25.0) {
             insights.add(new BusinessAnalyticsSnapshot.Insight(
                     "warning",
                     "Cancellations need attention",
-                    "Around " + formatPercent(overview.cancellationRate()) + " of reservations end in cancellation. Review pickup notes and time windows for clarity."
+                    "Around " + formatPercent(overview.cancellationRate()) + " of orders end in cancellation. Review pickup notes and time windows for clarity."
             ));
         }
 
-        bestDaypartInsight(offers, reservationsByOfferId).ifPresent(insights::add);
-        topItemInsight(offers, reservationsByOfferId).ifPresent(insights::add);
+        bestDaypartInsight(offers, ordersByOfferId).ifPresent(insights::add);
+        topItemInsight(offers, ordersByOfferId).ifPresent(insights::add);
 
         if (overview.averageHoursToFirstReservation() != null) {
             String tone = overview.averageHoursToFirstReservation() <= 6.0 ? "success" : "info";
             insights.add(new BusinessAnalyticsSnapshot.Insight(
                     tone,
                     "Claim speed",
-                    "Offers are claimed in about " + formatHours(overview.averageHoursToFirstReservation()) + " on average from publish to first reservation."
+                    "Offers are claimed in about " + formatHours(overview.averageHoursToFirstReservation()) + " on average from publish to first paid order."
             ));
         }
 
@@ -366,10 +361,8 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
     }
 
     private Optional<BusinessAnalyticsSnapshot.Insight> bestDaypartInsight(List<Offer> offers,
-                                                                           Map<Long, List<Reservation>> reservationsByOfferId) {
-        return buildDaypartPerformance(offers, reservationsByOfferId, offers.stream()
-                .filter(offer -> offer.getId() != null)
-                .collect(Collectors.toMap(Offer::getId, offer -> offer)))
+                                                                           Map<Long, List<Order>> ordersByOfferId) {
+        return buildDaypartPerformance(offers, ordersByOfferId)
                 .stream()
                 .filter(slot -> slot.offersScheduled() >= 2)
                 .max(Comparator
@@ -383,8 +376,8 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
     }
 
     private Optional<BusinessAnalyticsSnapshot.Insight> topItemInsight(List<Offer> offers,
-                                                                       Map<Long, List<Reservation>> reservationsByOfferId) {
-        return buildTopItems(offers, reservationsByOfferId).stream()
+                                                                       Map<Long, List<Order>> ordersByOfferId) {
+        return buildTopItems(offers, ordersByOfferId).stream()
                 .filter(item -> item.pickedUpQuantity() > 0)
                 .findFirst()
                 .map(item -> new BusinessAnalyticsSnapshot.Insight(
@@ -394,9 +387,9 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
                 ));
     }
 
-    private Double averageHoursToFirstReservation(List<Offer> offers, Map<Long, List<Reservation>> reservationsByOfferId) {
+    private Double averageHoursToFirstReservation(List<Offer> offers, Map<Long, List<Order>> ordersByOfferId) {
         return offers.stream()
-                .map(offer -> firstReservationHours(offer, reservationsByOfferId.get(offer.getId())))
+                .map(offer -> firstOrderHours(offer, ordersByOfferId.get(offer.getId())))
                 .filter(Objects::nonNull)
                 .mapToDouble(Double::doubleValue)
                 .average()
@@ -407,17 +400,17 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
                 .orElse(null);
     }
 
-    private Double firstReservationHours(Offer offer, List<Reservation> reservations) {
-        if (offer == null || offer.getCreatedAt() == null || reservations == null || reservations.isEmpty()) {
+    private Double firstOrderHours(Offer offer, List<Order> orders) {
+        if (offer == null || offer.getCreatedAt() == null || orders == null || orders.isEmpty()) {
             return null;
         }
 
-        return reservations.stream()
-                .map(Reservation::getCreatedAt)
+        return orders.stream()
+                .map(Order::getCreatedAt)
                 .filter(Objects::nonNull)
                 .min(LocalDateTime::compareTo)
-                .map(firstReservationAt -> {
-                    Duration duration = Duration.between(offer.getCreatedAt(), firstReservationAt);
+                .map(firstOrderAt -> {
+                    Duration duration = Duration.between(offer.getCreatedAt(), firstOrderAt);
                     if (duration.isNegative()) {
                         return null;
                     }
@@ -427,19 +420,10 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
                 .orElse(null);
     }
 
-    private int countReservationsByStatus(List<Reservation> reservations, ReservationStatus status) {
-        return (int) reservations.stream()
-                .filter(reservation -> reservation.getStatus() == status)
+    private int countOrdersByStatus(List<Order> orders, OrderStatus status) {
+        return (int) orders.stream()
+                .filter(order -> order.getStatus() == status)
                 .count();
-    }
-
-    private BigDecimal priceFor(Long offerId, Map<Long, Offer> offersById) {
-        if (offerId == null) {
-            return BigDecimal.ZERO;
-        }
-
-        Offer offer = offersById.get(offerId);
-        return offer == null || offer.getPrice() == null ? BigDecimal.ZERO : offer.getPrice();
     }
 
     private double percentage(int numerator, int denominator) {
