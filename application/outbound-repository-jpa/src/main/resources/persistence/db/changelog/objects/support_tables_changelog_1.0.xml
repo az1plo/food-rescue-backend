@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="support-001-create-support-conversation-table" author="codex">
+        <createTable tableName="support_conversation">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="public_id" type="VARCHAR(64)">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="user_id" type="BIGINT"/>
+            <column name="source_page" type="VARCHAR(255)"/>
+            <column name="locale" type="VARCHAR(32)"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+            <column name="updated_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="support_conversation"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="app_user"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_support_conversation_user"/>
+
+        <createIndex tableName="support_conversation"
+                     indexName="idx_support_conversation_public_id">
+            <column name="public_id"/>
+        </createIndex>
+    </changeSet>
+
+    <changeSet id="support-002-create-support-conversation-message-table" author="codex">
+        <createTable tableName="support_conversation_message">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="conversation_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="role" type="VARCHAR(20)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="content" type="VARCHAR(4000)">
+                <constraints nullable="false"/>
+            </column>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="support_conversation_message"
+                                 baseColumnNames="conversation_id"
+                                 referencedTableName="support_conversation"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_support_message_conversation"/>
+
+        <createIndex tableName="support_conversation_message"
+                     indexName="idx_support_message_conversation_created_at">
+            <column name="conversation_id"/>
+            <column name="created_at"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

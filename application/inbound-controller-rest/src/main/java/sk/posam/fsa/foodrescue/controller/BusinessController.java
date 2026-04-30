@@ -2,11 +2,11 @@ package sk.posam.fsa.foodrescue.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import sk.posam.fsa.foodrescue.domain.models.entities.Business;
-import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.models.valueobjects.BusinessAnalyticsSnapshot;
-import sk.posam.fsa.foodrescue.domain.services.BusinessAnalyticsFacade;
-import sk.posam.fsa.foodrescue.domain.services.BusinessFacade;
+import sk.posam.fsa.foodrescue.domain.business.Business;
+import sk.posam.fsa.foodrescue.domain.user.User;
+import sk.posam.fsa.foodrescue.domain.business.BusinessAnalyticsSnapshot;
+import sk.posam.fsa.foodrescue.domain.business.BusinessAnalyticsFacade;
+import sk.posam.fsa.foodrescue.domain.business.BusinessFacade;
 import sk.posam.fsa.foodrescue.mapper.BusinessAnalyticsMapper;
 import sk.posam.fsa.foodrescue.mapper.BusinessMapper;
 import sk.posam.fsa.foodrescue.rest.api.BusinessesApi;
@@ -85,3 +85,4 @@ public class BusinessController implements BusinessesApi {
         return ResponseEntity.noContent().build();
     }
 }
+

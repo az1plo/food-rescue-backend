@@ -44,6 +44,8 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/auth/token").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
+                .requestMatchers(HttpMethod.GET, "/marketplace/offers").permitAll()
+                .requestMatchers(HttpMethod.POST, "/support/chat/messages").permitAll()
 
                 .requestMatchers(HttpMethod.POST, "/businesses").authenticated()
                 .requestMatchers(HttpMethod.GET, "/businesses").authenticated()

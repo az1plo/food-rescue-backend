@@ -2,9 +2,9 @@ package sk.posam.fsa.foodrescue.jpa;
 
 import org.springframework.data.domain.Sort;
 import org.springframework.stereotype.Repository;
-import sk.posam.fsa.foodrescue.domain.models.entities.Business;
-import sk.posam.fsa.foodrescue.domain.models.enums.BusinessStatus;
-import sk.posam.fsa.foodrescue.domain.repositories.BusinessRepository;
+import sk.posam.fsa.foodrescue.domain.business.Business;
+import sk.posam.fsa.foodrescue.domain.business.BusinessStatus;
+import sk.posam.fsa.foodrescue.domain.business.BusinessRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -58,3 +58,4 @@ public class JpaBusinessRepositoryAdapter implements BusinessRepository {
         businessSpringDataRepository.delete(business);
     }
 }
+

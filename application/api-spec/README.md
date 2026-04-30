@@ -1,6 +1,6 @@
 # API Spec Module
 
-OpenAPI-first contract for the Food Rescue Platform slice.
+OpenAPI-first contract for the Savr platform slice.
 
 Contains:
 - OpenAPI YAML

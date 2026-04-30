@@ -4,9 +4,9 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.exceptions.FoodRescueException;
-import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.ports.UserIdentityProvider;
+import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
+import sk.posam.fsa.foodrescue.domain.user.User;
+import sk.posam.fsa.foodrescue.domain.user.UserIdentityProvider;
 
 import java.io.IOException;
 import java.net.URI;
@@ -241,3 +241,4 @@ public class KeycloakAdminUserIdentityProvider implements UserIdentityProvider {
         return value == null ? "" : value.replaceAll("/+$", "");
     }
 }
+

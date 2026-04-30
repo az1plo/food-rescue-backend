@@ -1,7 +1,7 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.valueobjects.PickupLocation;
+import sk.posam.fsa.foodrescue.domain.offer.PickupLocation;
 import sk.posam.fsa.foodrescue.rest.dto.PickupLocationDto;
 
 @Component
@@ -35,3 +35,4 @@ public class PickupLocationMapper {
         return dto;
     }
 }
+

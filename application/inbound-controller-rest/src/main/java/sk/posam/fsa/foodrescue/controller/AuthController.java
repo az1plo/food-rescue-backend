@@ -6,7 +6,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.util.MultiValueMap;
-import sk.posam.fsa.foodrescue.domain.services.AuthFacade;
+import sk.posam.fsa.foodrescue.domain.user.AuthFacade;
 
 import java.util.Map;
 
@@ -29,3 +29,4 @@ public class AuthController {
         return ResponseEntity.ok(response);
     }
 }
+

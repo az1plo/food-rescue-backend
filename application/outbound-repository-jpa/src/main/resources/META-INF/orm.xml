@@ -4,7 +4,7 @@
                  xsi:schemaLocation="https://jakarta.ee/xml/ns/persistence/orm https://jakarta.ee/xml/ns/persistence/orm_3_1.xsd"
                  version="3.1">
 
-    <embeddable class="sk.posam.fsa.foodrescue.domain.models.valueobjects.Address" access="FIELD">
+    <embeddable class="sk.posam.fsa.foodrescue.domain.shared.Address" access="FIELD">
         <attributes>
             <basic name="street">
                 <column name="street"/>
@@ -18,10 +18,16 @@
             <basic name="country">
                 <column name="country"/>
             </basic>
+            <basic name="latitude">
+                <column name="latitude"/>
+            </basic>
+            <basic name="longitude">
+                <column name="longitude"/>
+            </basic>
         </attributes>
     </embeddable>
 
-    <embeddable class="sk.posam.fsa.foodrescue.domain.models.valueobjects.OfferItem" access="FIELD">
+    <embeddable class="sk.posam.fsa.foodrescue.domain.offer.OfferItem" access="FIELD">
         <attributes>
             <basic name="name">
                 <column name="name"/>
@@ -32,7 +38,7 @@
         </attributes>
     </embeddable>
 
-    <embeddable class="sk.posam.fsa.foodrescue.domain.models.valueobjects.PickupLocation" access="FIELD">
+    <embeddable class="sk.posam.fsa.foodrescue.domain.offer.PickupLocation" access="FIELD">
         <attributes>
             <embedded name="address"/>
             <basic name="note">
@@ -41,7 +47,7 @@
         </attributes>
     </embeddable>
 
-    <embeddable class="sk.posam.fsa.foodrescue.domain.models.valueobjects.PickupTimeWindow" access="FIELD">
+    <embeddable class="sk.posam.fsa.foodrescue.domain.offer.PickupTimeWindow" access="FIELD">
         <attributes>
             <basic name="from">
                 <column name="time_from"/>
@@ -52,7 +58,7 @@
         </attributes>
     </embeddable>
 
-    <embeddable class="sk.posam.fsa.foodrescue.domain.models.valueobjects.PickupConfirmation" access="FIELD">
+    <embeddable class="sk.posam.fsa.foodrescue.domain.reservation.PickupConfirmation" access="FIELD">
         <attributes>
             <basic name="confirmedByUserId">
                 <column name="confirmed_by_user_id"/>
@@ -63,7 +69,7 @@
         </attributes>
     </embeddable>
 
-    <entity class="sk.posam.fsa.foodrescue.domain.models.entities.User" access="FIELD">
+    <entity class="sk.posam.fsa.foodrescue.domain.user.User" access="FIELD">
         <table name="app_user"/>
         <attributes>
             <id name="id">
@@ -96,7 +102,7 @@
         </attributes>
     </entity>
 
-    <entity class="sk.posam.fsa.foodrescue.domain.models.entities.Business" access="FIELD">
+    <entity class="sk.posam.fsa.foodrescue.domain.business.Business" access="FIELD">
         <table name="business"/>
         <attributes>
             <id name="id">
@@ -123,7 +129,7 @@
         </attributes>
     </entity>
 
-    <entity class="sk.posam.fsa.foodrescue.domain.models.entities.Offer" access="FIELD">
+    <entity class="sk.posam.fsa.foodrescue.domain.offer.Offer" access="FIELD">
         <table name="offer"/>
         <attributes>
             <id name="id">
@@ -145,6 +151,9 @@
             <basic name="price">
                 <column name="price"/>
             </basic>
+            <basic name="originalPrice">
+                <column name="original_price"/>
+            </basic>
             <basic name="quantityAvailable">
                 <column name="quantity_available"/>
             </basic>
@@ -152,7 +161,7 @@
                 <column name="status"/>
                 <enumerated>STRING</enumerated>
             </basic>
-            <element-collection name="items" fetch="EAGER" target-class="sk.posam.fsa.foodrescue.domain.models.valueobjects.OfferItem">
+            <element-collection name="items" fetch="EAGER" target-class="sk.posam.fsa.foodrescue.domain.offer.OfferItem">
                 <collection-table name="offer_item">
                     <join-column name="offer_id"/>
                 </collection-table>
@@ -170,6 +179,12 @@
                 </attribute-override>
                 <attribute-override name="address.country">
                     <column name="pickup_country"/>
+                </attribute-override>
+                <attribute-override name="address.latitude">
+                    <column name="pickup_latitude"/>
+                </attribute-override>
+                <attribute-override name="address.longitude">
+                    <column name="pickup_longitude"/>
                 </attribute-override>
                 <attribute-override name="note">
                     <column name="pickup_note"/>
@@ -189,7 +204,7 @@
         </attributes>
     </entity>
 
-    <entity class="sk.posam.fsa.foodrescue.domain.models.entities.Reservation" access="FIELD">
+    <entity class="sk.posam.fsa.foodrescue.domain.reservation.Reservation" access="FIELD">
         <table name="reservation"/>
         <attributes>
             <id name="id">
@@ -205,6 +220,9 @@
             <basic name="status">
                 <column name="status"/>
                 <enumerated>STRING</enumerated>
+            </basic>
+            <basic name="quantity">
+                <column name="quantity"/>
             </basic>
             <basic name="createdAt">
                 <column name="created_at"/>
@@ -223,7 +241,7 @@
         </attributes>
     </entity>
 
-    <entity class="sk.posam.fsa.foodrescue.domain.models.entities.Notification" access="FIELD">
+    <entity class="sk.posam.fsa.foodrescue.domain.notification.Notification" access="FIELD">
         <table name="notification"/>
         <attributes>
             <id name="id">
@@ -251,4 +269,84 @@
             </basic>
         </attributes>
     </entity>
+
+    <entity class="sk.posam.fsa.foodrescue.domain.review.Review" access="FIELD">
+        <table name="review"/>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="reservationId">
+                <column name="reservation_id"/>
+            </basic>
+            <basic name="businessId">
+                <column name="business_id"/>
+            </basic>
+            <basic name="userId">
+                <column name="user_id"/>
+            </basic>
+            <basic name="rating">
+                <column name="rating"/>
+            </basic>
+            <basic name="comment">
+                <column name="comment"/>
+            </basic>
+            <basic name="createdAt">
+                <column name="created_at"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <entity class="sk.posam.fsa.foodrescue.domain.support.SupportConversation" access="FIELD">
+        <table name="support_conversation"/>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="publicId">
+                <column name="public_id"/>
+            </basic>
+            <basic name="userId">
+                <column name="user_id"/>
+            </basic>
+            <basic name="sourcePage">
+                <column name="source_page"/>
+            </basic>
+            <basic name="locale">
+                <column name="locale"/>
+            </basic>
+            <basic name="createdAt">
+                <column name="created_at"/>
+            </basic>
+            <basic name="updatedAt">
+                <column name="updated_at"/>
+            </basic>
+        </attributes>
+    </entity>
+
+    <entity class="sk.posam.fsa.foodrescue.domain.support.SupportConversationMessage" access="FIELD">
+        <table name="support_conversation_message"/>
+        <attributes>
+            <id name="id">
+                <column name="id"/>
+                <generated-value strategy="IDENTITY"/>
+            </id>
+            <basic name="conversationId">
+                <column name="conversation_id"/>
+            </basic>
+            <basic name="role">
+                <column name="role"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <basic name="content">
+                <column name="content"/>
+            </basic>
+            <basic name="createdAt">
+                <column name="created_at"/>
+            </basic>
+        </attributes>
+    </entity>
 </entity-mappings>
+

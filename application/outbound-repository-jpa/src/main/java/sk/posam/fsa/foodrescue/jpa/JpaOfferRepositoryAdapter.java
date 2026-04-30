@@ -1,9 +1,9 @@
 package sk.posam.fsa.foodrescue.jpa;
 
 import org.springframework.stereotype.Repository;
-import sk.posam.fsa.foodrescue.domain.models.entities.Offer;
-import sk.posam.fsa.foodrescue.domain.models.enums.OfferStatus;
-import sk.posam.fsa.foodrescue.domain.repositories.OfferRepository;
+import sk.posam.fsa.foodrescue.domain.offer.Offer;
+import sk.posam.fsa.foodrescue.domain.offer.OfferStatus;
+import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -28,6 +28,11 @@ public class JpaOfferRepositoryAdapter implements OfferRepository {
     }
 
     @Override
+    public List<Offer> findAll() {
+        return offerSpringDataRepository.findAllOrdered();
+    }
+
+    @Override
     public List<Offer> findAllByBusinessId(Long businessId) {
         return offerSpringDataRepository.findAllByBusinessIdOrderByCreatedAtDesc(businessId);
     }
@@ -42,3 +47,4 @@ public class JpaOfferRepositoryAdapter implements OfferRepository {
         offerSpringDataRepository.delete(offer);
     }
 }
+

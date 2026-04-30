@@ -1,6 +1,6 @@
 # Domain Module
 
-Pure domain model for the Food Rescue Platform slice.
+Pure domain model for the Savr platform slice.
 
 Current modeling choices:
 - global system roles stay simple: `USER` and `ADMIN`

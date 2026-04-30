@@ -1,11 +1,10 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.valueobjects.PickupTimeWindow;
+import sk.posam.fsa.foodrescue.domain.offer.PickupTimeWindow;
 import sk.posam.fsa.foodrescue.rest.dto.PickupTimeWindowDto;
 
 import java.time.OffsetDateTime;
-import java.time.ZoneOffset;
 
 @Component
 public class PickupTimeWindowMapper {
@@ -27,8 +26,8 @@ public class PickupTimeWindowMapper {
         }
 
         PickupTimeWindowDto dto = new PickupTimeWindowDto();
-        dto.setFrom(entity.getFrom() != null ? entity.getFrom().atOffset(ZoneOffset.UTC) : null);
-        dto.setTo(entity.getTo() != null ? entity.getTo().atOffset(ZoneOffset.UTC) : null);
+        dto.setFrom(ApiDateTimeMapper.toUtcOffsetDateTime(entity.getFrom()));
+        dto.setTo(ApiDateTimeMapper.toUtcOffsetDateTime(entity.getTo()));
         return dto;
     }
 
@@ -36,3 +35,4 @@ public class PickupTimeWindowMapper {
         return value == null ? null : value.toLocalDateTime();
     }
 }
+

@@ -1,12 +1,11 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.entities.Reservation;
+import sk.posam.fsa.foodrescue.domain.reservation.Reservation;
 import sk.posam.fsa.foodrescue.rest.dto.CreateReservationRequestDto;
 import sk.posam.fsa.foodrescue.rest.dto.ReservationResponseDto;
 import sk.posam.fsa.foodrescue.rest.dto.ReservationStatusDto;
 
-import java.time.ZoneOffset;
 import java.util.List;
 
 @Component
@@ -27,6 +26,7 @@ public class ReservationMapper {
         dto.setId(entity.getId());
         dto.setOfferId(entity.getOfferId());
         dto.setUserId(entity.getUserId());
+        dto.setQuantity(entity.getQuantity());
         dto.setStatus(
                 entity.getStatus() != null
                         ? ReservationStatusDto.valueOf(entity.getStatus().name())
@@ -34,12 +34,12 @@ public class ReservationMapper {
         );
         dto.setCreatedAt(
                 entity.getCreatedAt() != null
-                        ? entity.getCreatedAt().atOffset(ZoneOffset.UTC)
+                        ? ApiDateTimeMapper.toUtcOffsetDateTime(entity.getCreatedAt())
                         : null
         );
         dto.setCancelledAt(
                 entity.getCancelledAt() != null
-                        ? entity.getCancelledAt().atOffset(ZoneOffset.UTC)
+                        ? ApiDateTimeMapper.toUtcOffsetDateTime(entity.getCancelledAt())
                         : null
         );
         dto.setPickupConfirmation(pickupConfirmationMapper.toDto(entity.getPickupConfirmation()));
@@ -55,4 +55,9 @@ public class ReservationMapper {
     public Long toOfferId(CreateReservationRequestDto dto) {
         return dto == null ? null : dto.getOfferId();
     }
+
+    public Integer toQuantity(CreateReservationRequestDto dto) {
+        return dto == null ? null : dto.getQuantity();
+    }
 }
+

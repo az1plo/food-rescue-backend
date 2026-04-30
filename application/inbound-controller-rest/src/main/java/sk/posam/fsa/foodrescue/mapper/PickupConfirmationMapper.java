@@ -1,10 +1,8 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.valueobjects.PickupConfirmation;
+import sk.posam.fsa.foodrescue.domain.reservation.PickupConfirmation;
 import sk.posam.fsa.foodrescue.rest.dto.PickupConfirmationDto;
-
-import java.time.ZoneOffset;
 
 @Component
 public class PickupConfirmationMapper {
@@ -18,9 +16,10 @@ public class PickupConfirmationMapper {
         dto.setConfirmedByUserId(entity.getConfirmedByUserId());
         dto.setConfirmedAt(
                 entity.getConfirmedAt() != null
-                        ? entity.getConfirmedAt().atOffset(ZoneOffset.UTC)
+                        ? ApiDateTimeMapper.toUtcOffsetDateTime(entity.getConfirmedAt())
                         : null
         );
         return dto;
     }
 }
+

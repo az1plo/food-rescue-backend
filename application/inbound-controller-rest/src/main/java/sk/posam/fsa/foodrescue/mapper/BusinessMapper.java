@@ -1,13 +1,11 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.entities.Business;
+import sk.posam.fsa.foodrescue.domain.business.Business;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessResponseDto;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessStatusDto;
 import sk.posam.fsa.foodrescue.rest.dto.CreateBusinessRequestDto;
 import sk.posam.fsa.foodrescue.rest.dto.UpdateBusinessRequestDto;
-
-import java.time.ZoneOffset;
 
 @Component
 public class BusinessMapper {
@@ -36,7 +34,7 @@ public class BusinessMapper {
         dto.setAddress(addressMapper.toDto(entity.getAddress()));
         dto.setCreatedAt(
                 entity.getCreatedAt() != null
-                        ? entity.getCreatedAt().atOffset(ZoneOffset.UTC)
+                        ? ApiDateTimeMapper.toUtcOffsetDateTime(entity.getCreatedAt())
                         : null
         );
         return dto;
@@ -66,3 +64,4 @@ public class BusinessMapper {
         );
     }
 }
+

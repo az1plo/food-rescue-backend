@@ -1,9 +1,9 @@
 package sk.posam.fsa.foodrescue.jpa;
 
 import org.springframework.stereotype.Repository;
-import sk.posam.fsa.foodrescue.domain.models.entities.Reservation;
-import sk.posam.fsa.foodrescue.domain.models.enums.ReservationStatus;
-import sk.posam.fsa.foodrescue.domain.repositories.ReservationRepository;
+import sk.posam.fsa.foodrescue.domain.reservation.Reservation;
+import sk.posam.fsa.foodrescue.domain.reservation.ReservationStatus;
+import sk.posam.fsa.foodrescue.domain.reservation.ReservationRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -59,3 +59,4 @@ public class JpaReservationRepositoryAdapter implements ReservationRepository {
         reservationSpringDataRepository.delete(reservation);
     }
 }
+

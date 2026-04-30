@@ -30,6 +30,18 @@ management:
         include: "*"
 
 food-rescue:
+  support:
+    provider: ${FOOD_RESCUE_SUPPORT_PROVIDER:stub}
+    openai:
+      base-url: ${FOOD_RESCUE_SUPPORT_OPENAI_BASE_URL:https://api.openai.com/v1/responses}
+      api-key: ${FOOD_RESCUE_SUPPORT_OPENAI_API_KEY:}
+      project-id: ${FOOD_RESCUE_SUPPORT_OPENAI_PROJECT_ID:}
+      organization-id: ${FOOD_RESCUE_SUPPORT_OPENAI_ORGANIZATION_ID:}
+      model: ${FOOD_RESCUE_SUPPORT_OPENAI_MODEL:gpt-4.1-mini}
+      timeout-seconds: ${FOOD_RESCUE_SUPPORT_OPENAI_TIMEOUT_SECONDS:30}
+      max-output-tokens: ${FOOD_RESCUE_SUPPORT_OPENAI_MAX_OUTPUT_TOKENS:500}
+      max-tool-rounds: ${FOOD_RESCUE_SUPPORT_OPENAI_MAX_TOOL_ROUNDS:3}
+      temperature: ${FOOD_RESCUE_SUPPORT_OPENAI_TEMPERATURE:0.2}
   identity:
     keycloak:
       base-url: ${FOOD_RESCUE_KEYCLOAK_BASE_URL:http://localhost:8081}

@@ -64,6 +64,10 @@ class HexagonalArchitectureTest {
     void outbound_layer_must_not_depend_on_inbound_api_contract_or_runtime() {
         ArchRule rule = noClasses()
                 .that().resideInAPackage("sk.posam.fsa.foodrescue.jpa..")
+                .or().resideInAPackage("sk.posam.fsa.foodrescue.keycloak..")
+                .or().resideInAPackage("sk.posam.fsa.foodrescue.nominatim..")
+                .or().resideInAPackage("sk.posam.fsa.foodrescue.openai..")
+                .or().resideInAPackage("sk.posam.fsa.foodrescue.supportstub..")
                 .should().dependOnClassesThat()
                 .resideInAnyPackage(
                         "sk.posam.fsa.foodrescue.controller..",

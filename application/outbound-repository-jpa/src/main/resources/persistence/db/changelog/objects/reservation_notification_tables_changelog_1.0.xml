@@ -67,4 +67,54 @@
                                  referencedColumnNames="id"
                                  constraintName="fk_notification_user"/>
     </changeSet>
+
+    <changeSet id="review-001-create-review-table" author="codex">
+        <createTable tableName="review">
+            <column name="id" type="BIGINT" autoIncrement="true">
+                <constraints primaryKey="true" nullable="false"/>
+            </column>
+            <column name="reservation_id" type="BIGINT">
+                <constraints nullable="false" unique="true"/>
+            </column>
+            <column name="business_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="user_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="rating" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="comment" type="VARCHAR(1000)"/>
+            <column name="created_at" type="TIMESTAMP">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addForeignKeyConstraint baseTableName="review"
+                                 baseColumnNames="reservation_id"
+                                 referencedTableName="reservation"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_review_reservation"/>
+
+        <addForeignKeyConstraint baseTableName="review"
+                                 baseColumnNames="business_id"
+                                 referencedTableName="business"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_review_business"/>
+
+        <addForeignKeyConstraint baseTableName="review"
+                                 baseColumnNames="user_id"
+                                 referencedTableName="app_user"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_review_user"/>
+    </changeSet>
+
+    <changeSet id="reservation-002-add-quantity-column" author="codex">
+        <addColumn tableName="reservation">
+            <column name="quantity" type="INT" defaultValueNumeric="1">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

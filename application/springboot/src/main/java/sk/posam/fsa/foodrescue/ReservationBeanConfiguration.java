@@ -2,12 +2,12 @@ package sk.posam.fsa.foodrescue;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import sk.posam.fsa.foodrescue.domain.repositories.BusinessRepository;
-import sk.posam.fsa.foodrescue.domain.repositories.NotificationRepository;
-import sk.posam.fsa.foodrescue.domain.repositories.OfferRepository;
-import sk.posam.fsa.foodrescue.domain.repositories.ReservationRepository;
-import sk.posam.fsa.foodrescue.domain.services.ReservationFacade;
-import sk.posam.fsa.foodrescue.domain.services.ReservationService;
+import sk.posam.fsa.foodrescue.domain.business.BusinessRepository;
+import sk.posam.fsa.foodrescue.domain.notification.NotificationRepository;
+import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
+import sk.posam.fsa.foodrescue.domain.reservation.ReservationRepository;
+import sk.posam.fsa.foodrescue.domain.reservation.ReservationFacade;
+import sk.posam.fsa.foodrescue.domain.reservation.ReservationService;
 
 @Configuration
 public class ReservationBeanConfiguration {
@@ -20,3 +20,4 @@ public class ReservationBeanConfiguration {
         return new ReservationService(reservationRepository, offerRepository, businessRepository, notificationRepository);
     }
 }
+

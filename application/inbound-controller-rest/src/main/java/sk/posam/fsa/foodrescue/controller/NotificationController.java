@@ -2,9 +2,9 @@ package sk.posam.fsa.foodrescue.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import sk.posam.fsa.foodrescue.domain.models.entities.Notification;
-import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.services.NotificationFacade;
+import sk.posam.fsa.foodrescue.domain.notification.Notification;
+import sk.posam.fsa.foodrescue.domain.user.User;
+import sk.posam.fsa.foodrescue.domain.notification.NotificationFacade;
 import sk.posam.fsa.foodrescue.mapper.NotificationMapper;
 import sk.posam.fsa.foodrescue.rest.api.NotificationsApi;
 import sk.posam.fsa.foodrescue.rest.dto.NotificationResponseDto;
@@ -48,3 +48,4 @@ public class NotificationController implements NotificationsApi {
         return ResponseEntity.ok(notificationMapper.toDto(notification));
     }
 }
+

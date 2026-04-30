@@ -16,7 +16,7 @@
     <version>0.0.1-SNAPSHOT</version>
     <packaging>pom</packaging>
 
-    <name>Food Rescue Platform</name>
+    <name>Savr Platform</name>
 
     <properties>
         <java.version>25</java.version>
@@ -30,6 +30,9 @@
         <module>application/domain</module>
         <module>application/outbound-repository-jpa</module>
         <module>application/outbound-identity-keycloak</module>
+        <module>application/outbound-geocoding-nominatim</module>
+        <module>application/outbound-support-openai</module>
+        <module>application/outbound-support-stub</module>
         <module>application/inbound-controller-rest</module>
         <module>application/springboot</module>
         <module>application/api-spec</module>

@@ -1,7 +1,7 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.valueobjects.BusinessAnalyticsSnapshot;
+import sk.posam.fsa.foodrescue.domain.business.BusinessAnalyticsSnapshot;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessAnalyticsCatalogStatusDto;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessAnalyticsDailyActivityPointDto;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessAnalyticsDaypartPerformanceDto;
@@ -11,7 +11,6 @@ import sk.posam.fsa.foodrescue.rest.dto.BusinessAnalyticsOverviewDto;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessAnalyticsResponseDto;
 
 import java.math.BigDecimal;
-import java.time.ZoneOffset;
 
 @Component
 public class BusinessAnalyticsMapper {
@@ -24,7 +23,7 @@ public class BusinessAnalyticsMapper {
         BusinessAnalyticsResponseDto dto = new BusinessAnalyticsResponseDto();
         dto.setBusinessId(snapshot.businessId());
         dto.setBusinessName(snapshot.businessName());
-        dto.setGeneratedAt(snapshot.generatedAt() == null ? null : snapshot.generatedAt().atOffset(ZoneOffset.UTC));
+        dto.setGeneratedAt(ApiDateTimeMapper.toUtcOffsetDateTime(snapshot.generatedAt()));
         dto.setOverview(toOverviewDto(snapshot.overview()));
         dto.setCatalogStatus(snapshot.catalogStatus().stream()
                 .map(this::toCatalogStatusDto)
@@ -117,3 +116,4 @@ public class BusinessAnalyticsMapper {
         return value == null ? null : value.doubleValue();
     }
 }
+

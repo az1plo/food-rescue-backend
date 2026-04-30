@@ -1,6 +1,6 @@
 # Outbound JPA Module
 
-Persistence adapter for the Food Rescue Platform slice.
+Persistence adapter for the Savr platform slice.
 
 Contains:
 - Spring Data repositories

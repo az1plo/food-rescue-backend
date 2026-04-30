@@ -2,11 +2,11 @@ package sk.posam.fsa.foodrescue;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import sk.posam.fsa.foodrescue.domain.repositories.BusinessRepository;
-import sk.posam.fsa.foodrescue.domain.repositories.OfferRepository;
-import sk.posam.fsa.foodrescue.domain.repositories.ReservationRepository;
-import sk.posam.fsa.foodrescue.domain.services.BusinessAnalyticsFacade;
-import sk.posam.fsa.foodrescue.domain.services.BusinessAnalyticsService;
+import sk.posam.fsa.foodrescue.domain.business.BusinessRepository;
+import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
+import sk.posam.fsa.foodrescue.domain.reservation.ReservationRepository;
+import sk.posam.fsa.foodrescue.domain.business.BusinessAnalyticsFacade;
+import sk.posam.fsa.foodrescue.domain.business.BusinessAnalyticsService;
 
 @Configuration
 public class BusinessAnalyticsBeanConfiguration {
@@ -18,3 +18,4 @@ public class BusinessAnalyticsBeanConfiguration {
         return new BusinessAnalyticsService(businessRepository, offerRepository, reservationRepository);
     }
 }
+

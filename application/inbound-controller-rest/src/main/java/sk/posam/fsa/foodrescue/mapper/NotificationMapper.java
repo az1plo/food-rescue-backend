@@ -1,11 +1,10 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.entities.Notification;
+import sk.posam.fsa.foodrescue.domain.notification.Notification;
 import sk.posam.fsa.foodrescue.rest.dto.NotificationResponseDto;
 import sk.posam.fsa.foodrescue.rest.dto.NotificationTypeDto;
 
-import java.time.ZoneOffset;
 import java.util.List;
 
 @Component
@@ -28,12 +27,12 @@ public class NotificationMapper {
         dto.setMessage(entity.getMessage());
         dto.setCreatedAt(
                 entity.getCreatedAt() != null
-                        ? entity.getCreatedAt().atOffset(ZoneOffset.UTC)
+                        ? ApiDateTimeMapper.toUtcOffsetDateTime(entity.getCreatedAt())
                         : null
         );
         dto.setReadAt(
                 entity.getReadAt() != null
-                        ? entity.getReadAt().atOffset(ZoneOffset.UTC)
+                        ? ApiDateTimeMapper.toUtcOffsetDateTime(entity.getReadAt())
                         : null
         );
         return dto;
@@ -45,3 +44,4 @@ public class NotificationMapper {
                 .toList();
     }
 }
+

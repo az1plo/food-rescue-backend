@@ -87,4 +87,17 @@
             <column name="image_url" type="VARCHAR(1024)"/>
         </addColumn>
     </changeSet>
+
+    <changeSet id="offer-004-add-pickup-coordinates-columns" author="codex">
+        <addColumn tableName="offer">
+            <column name="pickup_latitude" type="DOUBLE PRECISION"/>
+            <column name="pickup_longitude" type="DOUBLE PRECISION"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="offer-005-add-original-price-column" author="codex">
+        <addColumn tableName="offer">
+            <column name="original_price" type="DECIMAL(10,2)"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

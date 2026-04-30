@@ -1,14 +1,13 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.entities.Offer;
+import sk.posam.fsa.foodrescue.domain.offer.Offer;
 import sk.posam.fsa.foodrescue.rest.dto.CreateOfferRequestDto;
 import sk.posam.fsa.foodrescue.rest.dto.OfferResponseDto;
 import sk.posam.fsa.foodrescue.rest.dto.OfferStatusDto;
 import sk.posam.fsa.foodrescue.rest.dto.UpdateOfferRequestDto;
 
 import java.math.BigDecimal;
-import java.time.ZoneOffset;
 import java.util.List;
 
 @Component
@@ -38,6 +37,7 @@ public class OfferMapper {
         dto.setDescription(entity.getDescription());
         dto.setImageUrl(entity.getImageUrl());
         dto.setPrice(toDtoPrice(entity.getPrice()));
+        dto.setOriginalPrice(toDtoPrice(entity.getOriginalPrice()));
         dto.setQuantityAvailable(entity.getQuantityAvailable());
         dto.setStatus(
                 entity.getStatus() != null
@@ -51,7 +51,7 @@ public class OfferMapper {
         dto.setPickupTimeWindow(pickupTimeWindowMapper.toDto(entity.getPickupTimeWindow()));
         dto.setCreatedAt(
                 entity.getCreatedAt() != null
-                        ? entity.getCreatedAt().atOffset(ZoneOffset.UTC)
+                        ? ApiDateTimeMapper.toUtcOffsetDateTime(entity.getCreatedAt())
                         : null
         );
         return dto;
@@ -74,6 +74,7 @@ public class OfferMapper {
                 dto.getDescription(),
                 dto.getImageUrl(),
                 toDomainPrice(dto.getPrice()),
+                toDomainPrice(dto.getOriginalPrice()),
                 dto.getQuantityAvailable(),
                 dto.getItems() == null ? List.of() : dto.getItems().stream()
                         .map(offerItemMapper::toEntity)
@@ -94,6 +95,7 @@ public class OfferMapper {
                 dto.getDescription(),
                 dto.getImageUrl(),
                 toDomainPrice(dto.getPrice()),
+                toDomainPrice(dto.getOriginalPrice()),
                 dto.getQuantityAvailable(),
                 dto.getItems() == null ? List.of() : dto.getItems().stream()
                         .map(offerItemMapper::toEntity)
@@ -111,3 +113,4 @@ public class OfferMapper {
         return price == null ? null : BigDecimal.valueOf(price);
     }
 }
+

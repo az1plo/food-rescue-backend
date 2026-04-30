@@ -74,4 +74,11 @@
                                  referencedColumnNames="id"
                                  constraintName="fk_business_owner"/>
     </changeSet>
+
+    <changeSet id="business-003-add-address-coordinates" author="codex">
+        <addColumn tableName="business">
+            <column name="latitude" type="DOUBLE PRECISION"/>
+            <column name="longitude" type="DOUBLE PRECISION"/>
+        </addColumn>
+    </changeSet>
 </databaseChangeLog>

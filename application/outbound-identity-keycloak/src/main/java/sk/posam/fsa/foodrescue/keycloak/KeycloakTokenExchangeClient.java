@@ -4,8 +4,8 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.exceptions.FoodRescueException;
-import sk.posam.fsa.foodrescue.domain.ports.AuthTokenExchangeProvider;
+import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
+import sk.posam.fsa.foodrescue.domain.user.AuthTokenExchangeProvider;
 
 import java.io.IOException;
 import java.net.URI;
@@ -169,3 +169,4 @@ public class KeycloakTokenExchangeClient implements AuthTokenExchangeProvider {
         return value == null ? "" : value.replaceAll("/+$", "");
     }
 }
+

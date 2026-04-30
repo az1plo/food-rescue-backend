@@ -4,9 +4,9 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.oauth2.jwt.Jwt;
 import org.springframework.stereotype.Service;
-import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.models.enums.UserRole;
-import sk.posam.fsa.foodrescue.domain.services.UserFacade;
+import sk.posam.fsa.foodrescue.domain.user.User;
+import sk.posam.fsa.foodrescue.domain.user.UserRole;
+import sk.posam.fsa.foodrescue.domain.user.UserFacade;
 
 import java.util.Collection;
 import java.util.List;
@@ -142,3 +142,4 @@ public class CurrentUserDetailService {
         return value == null || value.isBlank() ? null : value.trim();
     }
 }
+

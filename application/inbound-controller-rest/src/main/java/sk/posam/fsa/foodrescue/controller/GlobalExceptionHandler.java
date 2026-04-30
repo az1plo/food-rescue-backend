@@ -18,7 +18,7 @@ import org.springframework.web.context.request.ServletWebRequest;
 import org.springframework.web.context.request.WebRequest;
 import org.springframework.web.method.annotation.HandlerMethodValidationException;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
-import sk.posam.fsa.foodrescue.domain.exceptions.FoodRescueException;
+import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
 import sk.posam.fsa.foodrescue.rest.dto.ErrorResponseDto;
 
 import java.time.OffsetDateTime;

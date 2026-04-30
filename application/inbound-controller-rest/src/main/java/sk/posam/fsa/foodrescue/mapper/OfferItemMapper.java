@@ -1,7 +1,7 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.valueobjects.OfferItem;
+import sk.posam.fsa.foodrescue.domain.offer.OfferItem;
 import sk.posam.fsa.foodrescue.rest.dto.OfferItemDto;
 
 @Component
@@ -26,3 +26,4 @@ public class OfferItemMapper {
         return dto;
     }
 }
+

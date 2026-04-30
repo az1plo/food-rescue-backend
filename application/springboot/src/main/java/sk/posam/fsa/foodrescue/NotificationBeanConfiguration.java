@@ -2,9 +2,9 @@ package sk.posam.fsa.foodrescue;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import sk.posam.fsa.foodrescue.domain.repositories.NotificationRepository;
-import sk.posam.fsa.foodrescue.domain.services.NotificationFacade;
-import sk.posam.fsa.foodrescue.domain.services.NotificationService;
+import sk.posam.fsa.foodrescue.domain.notification.NotificationRepository;
+import sk.posam.fsa.foodrescue.domain.notification.NotificationFacade;
+import sk.posam.fsa.foodrescue.domain.notification.NotificationService;
 
 @Configuration
 public class NotificationBeanConfiguration {
@@ -14,3 +14,4 @@ public class NotificationBeanConfiguration {
         return new NotificationService(notificationRepository);
     }
 }
+

@@ -1,8 +1,8 @@
 package sk.posam.fsa.foodrescue.jpa;
 
 import org.springframework.stereotype.Repository;
-import sk.posam.fsa.foodrescue.domain.models.entities.Notification;
-import sk.posam.fsa.foodrescue.domain.repositories.NotificationRepository;
+import sk.posam.fsa.foodrescue.domain.notification.Notification;
+import sk.posam.fsa.foodrescue.domain.notification.NotificationRepository;
 
 import java.util.List;
 import java.util.Optional;
@@ -41,3 +41,4 @@ public class JpaNotificationRepositoryAdapter implements NotificationRepository 
         notificationSpringDataRepository.delete(notification);
     }
 }
+

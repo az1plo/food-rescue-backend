@@ -1,8 +1,8 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.models.enums.UserRole;
+import sk.posam.fsa.foodrescue.domain.user.User;
+import sk.posam.fsa.foodrescue.domain.user.UserRole;
 import sk.posam.fsa.foodrescue.rest.dto.CreateUserRequestDto;
 import sk.posam.fsa.foodrescue.rest.dto.RegisterUserRequestDto;
 
@@ -39,3 +39,4 @@ public class UserMapper {
         return entity;
     }
 }
+

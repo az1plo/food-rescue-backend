@@ -2,9 +2,9 @@ package sk.posam.fsa.foodrescue.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import sk.posam.fsa.foodrescue.domain.models.entities.Offer;
-import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.services.OfferFacade;
+import sk.posam.fsa.foodrescue.domain.offer.Offer;
+import sk.posam.fsa.foodrescue.domain.user.User;
+import sk.posam.fsa.foodrescue.domain.offer.OfferFacade;
 import sk.posam.fsa.foodrescue.mapper.OfferMapper;
 import sk.posam.fsa.foodrescue.rest.api.OffersApi;
 import sk.posam.fsa.foodrescue.rest.dto.CreateOfferRequestDto;
@@ -68,3 +68,4 @@ public class OfferController implements OffersApi {
         return ResponseEntity.noContent().build();
     }
 }
+

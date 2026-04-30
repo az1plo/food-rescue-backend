@@ -1,6 +1,6 @@
 # Spring Boot Module
 
-Runtime composition module for the Food Rescue Platform slice.
+Runtime composition module for the Savr platform slice.
 
 Contains:
 - main application class

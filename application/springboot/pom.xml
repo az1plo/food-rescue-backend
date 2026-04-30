@@ -30,6 +30,21 @@
             <version>${project.version}</version>
         </dependency>
         <dependency>
+            <groupId>sk.posam.fsa.foodrescue</groupId>
+            <artifactId>outbound-geocoding-nominatim</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>sk.posam.fsa.foodrescue</groupId>
+            <artifactId>outbound-support-openai</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>sk.posam.fsa.foodrescue</groupId>
+            <artifactId>outbound-support-stub</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter-actuator</artifactId>
         </dependency>

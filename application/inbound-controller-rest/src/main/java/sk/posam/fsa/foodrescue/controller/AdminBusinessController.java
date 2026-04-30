@@ -6,9 +6,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import sk.posam.fsa.foodrescue.domain.models.entities.Business;
-import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.services.BusinessFacade;
+import sk.posam.fsa.foodrescue.domain.business.Business;
+import sk.posam.fsa.foodrescue.domain.user.User;
+import sk.posam.fsa.foodrescue.domain.business.BusinessFacade;
 import sk.posam.fsa.foodrescue.mapper.BusinessMapper;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessResponseDto;
 import sk.posam.fsa.foodrescue.security.CurrentUserDetailService;
@@ -47,3 +47,4 @@ public class AdminBusinessController {
         return ResponseEntity.ok(businessMapper.toDto(approvedBusiness));
     }
 }
+

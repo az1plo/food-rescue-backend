@@ -1,7 +1,7 @@
 package sk.posam.fsa.foodrescue.mapper;
 
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.models.valueobjects.Address;
+import sk.posam.fsa.foodrescue.domain.shared.Address;
 import sk.posam.fsa.foodrescue.rest.dto.AddressDto;
 
 @Component
@@ -16,7 +16,9 @@ public class AddressMapper {
                 dto.getStreet(),
                 dto.getCity(),
                 dto.getPostalCode(),
-                dto.getCountry()
+                dto.getCountry(),
+                dto.getLatitude(),
+                dto.getLongitude()
         );
     }
 
@@ -30,6 +32,9 @@ public class AddressMapper {
         dto.setCity(entity.getCity());
         dto.setPostalCode(entity.getPostalCode());
         dto.setCountry(entity.getCountry());
+        dto.setLatitude(entity.getLatitude());
+        dto.setLongitude(entity.getLongitude());
         return dto;
     }
 }
+

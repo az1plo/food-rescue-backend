@@ -9,7 +9,7 @@ import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.stereotype.Component;
 import org.springframework.web.servlet.HandlerExceptionResolver;
-import sk.posam.fsa.foodrescue.domain.exceptions.FoodRescueException;
+import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
 
 import java.io.IOException;
 import java.util.List;

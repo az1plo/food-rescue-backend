@@ -2,9 +2,9 @@ package sk.posam.fsa.foodrescue.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
-import sk.posam.fsa.foodrescue.domain.models.entities.Reservation;
-import sk.posam.fsa.foodrescue.domain.models.entities.User;
-import sk.posam.fsa.foodrescue.domain.services.ReservationFacade;
+import sk.posam.fsa.foodrescue.domain.reservation.Reservation;
+import sk.posam.fsa.foodrescue.domain.user.User;
+import sk.posam.fsa.foodrescue.domain.reservation.ReservationFacade;
 import sk.posam.fsa.foodrescue.mapper.ReservationMapper;
 import sk.posam.fsa.foodrescue.rest.api.ReservationsApi;
 import sk.posam.fsa.foodrescue.rest.dto.CreateReservationRequestDto;
@@ -39,7 +39,11 @@ public class ReservationController implements ReservationsApi {
     @Override
     public ResponseEntity<Void> createReservation(CreateReservationRequestDto request) {
         User user = currentUserDetailService.getFullCurrentUser();
-        Reservation reservation = reservationFacade.create(user, reservationMapper.toOfferId(request));
+        Reservation reservation = reservationFacade.create(
+                user,
+                reservationMapper.toOfferId(request),
+                reservationMapper.toQuantity(request)
+        );
         return ResponseEntity.created(URI.create("/reservations/" + reservation.getId())).build();
     }
 
@@ -64,3 +68,4 @@ public class ReservationController implements ReservationsApi {
         return ResponseEntity.ok(reservationMapper.toDto(reservation));
     }
 }
+

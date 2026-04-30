@@ -1,6 +1,6 @@
 # Inbound REST Module
 
-REST adapter for the Food Rescue Platform slice.
+REST adapter for the Savr platform slice.
 
 Contains:
 - controller entry point

@@ -1,10 +1,10 @@
 # Názov témy
 
-**Food Rescue Platform**
+**Savr Platform**
 
 ## Stručný popis témy
 
-Food Rescue Platform je informačný systém zameraný na znižovanie plytvania potravinami prostredníctvom evidencie, publikovania, vyhľadávania a rezervácie prebytočných potravín z reštaurácií, kaviarní a obchodov. Registrovaní používatelia môžu vyhľadávať dostupné ponuky, rezervovať ich a sledovať stav svojich rezervácií. Používateľ môže zároveň vytvoriť a spravovať jednu alebo viac prevádzok, prostredníctvom ktorých publikuje ponuky potravín určených na vyzdvihnutie v definovanom čase a na definovanom mieste. Systém zároveň zabezpečuje správu životného cyklu ponúk a rezervácií, notifikácie o dôležitých zmenách a základnú administráciu používateľov a obsahu.
+Savr Platform je informačný systém zameraný na znižovanie plytvania potravinami prostredníctvom evidencie, publikovania, vyhľadávania a rezervácie prebytočných potravín z reštaurácií, kaviarní a obchodov. Registrovaní používatelia môžu vyhľadávať dostupné ponuky, rezervovať ich a sledovať stav svojich rezervácií. Používateľ môže zároveň vytvoriť a spravovať jednu alebo viac prevádzok, prostredníctvom ktorých publikuje ponuky potravín určených na vyzdvihnutie v definovanom čase a na definovanom mieste. Systém zároveň zabezpečuje správu životného cyklu ponúk a rezervácií, notifikácie o dôležitých zmenách a základnú administráciu používateľov a obsahu.
 
 ## Zoznam požiadaviek
 

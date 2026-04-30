@@ -6,5 +6,6 @@
     <include file="persistence/db/changelog/objects/business_tables_changelog_1.0.xml" relativeToChangelogFile="false"/>
     <include file="persistence/db/changelog/objects/offer_tables_changelog_1.0.xml" relativeToChangelogFile="false"/>
     <include file="persistence/db/changelog/objects/reservation_notification_tables_changelog_1.0.xml" relativeToChangelogFile="false"/>
+    <include file="persistence/db/changelog/objects/support_tables_changelog_1.0.xml" relativeToChangelogFile="false"/>
     <include file="persistence/db/changelog/objects/business_seed_changelog_1.0.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

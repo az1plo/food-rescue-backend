@@ -1,8 +1,8 @@
 package sk.posam.fsa.foodrescue.jpa;
 
 import org.springframework.stereotype.Repository;
-import sk.posam.fsa.foodrescue.domain.repositories.UserRepository;
-import sk.posam.fsa.foodrescue.domain.models.entities.User;
+import sk.posam.fsa.foodrescue.domain.user.UserRepository;
+import sk.posam.fsa.foodrescue.domain.user.User;
 
 import java.util.Optional;
 
@@ -30,3 +30,4 @@ public class JpaUserRepositoryAdapter implements UserRepository {
         userSpringDataRepository.save(user);
     }
 }
+
