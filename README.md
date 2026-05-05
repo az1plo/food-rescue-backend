@@ -242,3 +242,4 @@ V systéme pribudla nová rezervácia v stave `ACTIVE`. Stav ponuky sa zmenil na
 20. Používateľ so stavom `BLOCKED` nemôže vykonávať nové akcie v systéme.
 21. Zmena stavu ponuky, rezervácie alebo prevádzky môže vyvolať vytvorenie notifikácie.
 22. Používateľ nemôže vytvoriť dve prevádzky s rovnakým názvom.
+
