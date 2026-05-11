@@ -30,6 +30,23 @@ management:
         include: "*"
 
 food-rescue:
+  offer-assistant:
+    provider: ${FOOD_RESCUE_OFFER_ASSISTANT_PROVIDER:${FOOD_RESCUE_SUPPORT_PROVIDER:stub}}
+    openai:
+      responses-base-url: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_RESPONSES_BASE_URL:https://api.openai.com/v1/responses}
+      images-base-url: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_IMAGES_BASE_URL:https://api.openai.com/v1/images/generations}
+      api-key: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_API_KEY:${FOOD_RESCUE_SUPPORT_OPENAI_API_KEY:}}
+      project-id: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_PROJECT_ID:${FOOD_RESCUE_SUPPORT_OPENAI_PROJECT_ID:}}
+      organization-id: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_ORGANIZATION_ID:${FOOD_RESCUE_SUPPORT_OPENAI_ORGANIZATION_ID:}}
+      draft-model: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_DRAFT_MODEL:${FOOD_RESCUE_SUPPORT_OPENAI_MODEL:gpt-4.1-mini}}
+      image-model: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_IMAGE_MODEL:gpt-image-1}
+      timeout-seconds: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_TIMEOUT_SECONDS:45}
+      max-output-tokens: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_MAX_OUTPUT_TOKENS:500}
+      temperature: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_TEMPERATURE:0.2}
+      image-size: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_IMAGE_SIZE:1024x1024}
+      image-quality: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_IMAGE_QUALITY:medium}
+  offer-media:
+    base-dir: ${FOOD_RESCUE_OFFER_MEDIA_BASE_DIR:${java.io.tmpdir}/food-rescue-offer-media}
   support:
     provider: ${FOOD_RESCUE_SUPPORT_PROVIDER:stub}
     openai:

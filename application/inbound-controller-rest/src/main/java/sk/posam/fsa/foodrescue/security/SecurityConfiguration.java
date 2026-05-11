@@ -46,6 +46,12 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
                 .requestMatchers(HttpMethod.GET, "/marketplace/offers").permitAll()
                 .requestMatchers(HttpMethod.POST, "/support/chat/messages").permitAll()
+                .requestMatchers(HttpMethod.POST, "/offer-assistant/draft-from-image").authenticated()
+                .requestMatchers(HttpMethod.POST, "/offer-assistant/generate-cover").authenticated()
+                .requestMatchers(HttpMethod.GET, "/offer-images/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/offer-images").authenticated()
+                .requestMatchers(HttpMethod.GET, "/business-icons/*").permitAll()
+                .requestMatchers(HttpMethod.POST, "/business-icons").authenticated()
 
                 .requestMatchers(HttpMethod.POST, "/businesses").authenticated()
                 .requestMatchers(HttpMethod.GET, "/businesses").authenticated()
@@ -67,6 +73,7 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.GET, "/orders/*").authenticated()
                 .requestMatchers(HttpMethod.GET, "/orders/*/pickup-pass").authenticated()
                 .requestMatchers(HttpMethod.POST, "/orders/*/pickup").authenticated()
+                .requestMatchers(HttpMethod.POST, "/orders/*/review").authenticated()
 
                 .requestMatchers(HttpMethod.GET, "/notifications").authenticated()
                 .requestMatchers(HttpMethod.GET, "/notifications/*").authenticated()

@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="offer-ai-metadata-001-add-offer-category-and-allergen-columns" author="savr">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="offer"/>
+            <not>
+                <columnExists tableName="offer" columnName="category"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="offer">
+            <column name="category" type="VARCHAR(40)" defaultValue="OTHER">
+                <constraints nullable="false"/>
+            </column>
+            <column name="illustrative_image" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="other_allergen_note" type="VARCHAR(500)"/>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="offer-ai-metadata-002-create-offer-allergen-collections" author="savr">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="offer"/>
+            <not>
+                <tableExists tableName="offer_contains_allergen"/>
+            </not>
+        </preConditions>
+
+        <createTable tableName="offer_contains_allergen">
+            <column name="offer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allergen_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allergen_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="offer_contains_allergen"
+                       columnNames="offer_id,allergen_order"
+                       constraintName="pk_offer_contains_allergen"/>
+
+        <addForeignKeyConstraint baseTableName="offer_contains_allergen"
+                                 baseColumnNames="offer_id"
+                                 referencedTableName="offer"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_offer_contains_allergen_offer"/>
+
+        <createTable tableName="offer_may_contain_allergen">
+            <column name="offer_id" type="BIGINT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allergen_order" type="INT">
+                <constraints nullable="false"/>
+            </column>
+            <column name="allergen_code" type="VARCHAR(50)">
+                <constraints nullable="false"/>
+            </column>
+        </createTable>
+
+        <addPrimaryKey tableName="offer_may_contain_allergen"
+                       columnNames="offer_id,allergen_order"
+                       constraintName="pk_offer_may_contain_allergen"/>
+
+        <addForeignKeyConstraint baseTableName="offer_may_contain_allergen"
+                                 baseColumnNames="offer_id"
+                                 referencedTableName="offer"
+                                 referencedColumnNames="id"
+                                 constraintName="fk_offer_may_contain_allergen_offer"/>
+    </changeSet>
+</databaseChangeLog>

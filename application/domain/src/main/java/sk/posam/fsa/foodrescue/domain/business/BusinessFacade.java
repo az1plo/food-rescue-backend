@@ -19,6 +19,10 @@ public interface BusinessFacade {
 
     Business update(User currentUser, Long id, Business business);
 
+    Business uploadIcon(User currentUser, Long businessId, BusinessIconUpload upload);
+
+    StoredBusinessIconContent getIcon(String iconId);
+
     void delete(User currentUser, Long id);
 }
 

@@ -87,7 +87,7 @@ public class Review {
         require(reservationId != null, "Reservation is required");
         require(businessId != null, "Business is required");
         require(userId != null, "User is required");
-        require(rating != null && rating >= 1 && rating <= 5, "Rating must be between 1 and 5");
+        require(rating != null && rating >= 0 && rating <= 5, "Rating must be between 0 and 5");
 
         if (comment != null) {
             comment = comment.trim();

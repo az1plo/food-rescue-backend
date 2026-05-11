@@ -1,0 +1,48 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="business-rating-001-add-columns" author="savr">
+        <preConditions onFail="MARK_RAN">
+            <not>
+                <columnExists tableName="business" columnName="rating_count"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="business">
+            <column name="rating_average" type="DOUBLE PRECISION"/>
+            <column name="rating_count" type="INT" defaultValueNumeric="0">
+                <constraints nullable="false"/>
+            </column>
+        </addColumn>
+    </changeSet>
+
+    <changeSet id="business-rating-002-backfill-aggregates" author="savr">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="business"/>
+            <tableExists tableName="review"/>
+            <columnExists tableName="business" columnName="rating_average"/>
+            <columnExists tableName="business" columnName="rating_count"/>
+        </preConditions>
+
+        <sql>
+            UPDATE business
+            SET rating_average = (
+                    SELECT ROUND(AVG(CAST(review.rating AS DECIMAL(10, 2))), 1)
+                    FROM review
+                    WHERE review.business_id = business.id
+                ),
+                rating_count = (
+                    SELECT COUNT(*)
+                    FROM review
+                    WHERE review.business_id = business.id
+                )
+            WHERE EXISTS (
+                SELECT 1
+                FROM review
+                WHERE review.business_id = business.id
+            );
+        </sql>
+    </changeSet>
+</databaseChangeLog>

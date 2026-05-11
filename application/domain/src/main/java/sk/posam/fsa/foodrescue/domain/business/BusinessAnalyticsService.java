@@ -102,7 +102,8 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
                 .count();
         int activeReservations = countOrdersByStatus(orders, OrderStatus.ACTIVE);
         int completedPickups = countOrdersByStatus(orders, OrderStatus.PICKED_UP);
-        int cancelledReservations = countOrdersByStatus(orders, OrderStatus.CANCELLED);
+        int cancelledReservations = countOrdersByStatus(orders, OrderStatus.CANCELLED)
+                + countOrdersByStatus(orders, OrderStatus.NO_SHOW);
 
         BigDecimal recoveredRevenue = orders.stream()
                 .filter(order -> order.getStatus() == OrderStatus.PICKED_UP)

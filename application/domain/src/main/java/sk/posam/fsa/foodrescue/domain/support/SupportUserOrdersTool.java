@@ -6,6 +6,7 @@ import sk.posam.fsa.foodrescue.domain.order.Order;
 import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
 import sk.posam.fsa.foodrescue.domain.user.User;
 
+import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -72,10 +73,14 @@ public class SupportUserOrdersTool implements SupportAssistantTool {
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("orderId", order.getId());
         summary.put("status", order.getStatus() == null ? null : order.getStatus().name());
+        summary.put("supportStatus", deriveSupportStatus(order));
+        summary.put("pickupWindowEnded", hasPickupWindowEnded(order));
         summary.put("quantity", order.getItem() == null ? null : order.getItem().getQuantity());
         summary.put("createdAt", order.getCreatedAt());
         summary.put("businessName", order.getBusinessName());
-        summary.put("offer", offer == null ? null : offerSummary(offer));
+        summary.put("pickupLocation", order.getPickupLocation());
+        summary.put("pickupTimeWindow", order.getPickupTimeWindow());
+        summary.put("currentMarketplaceOffer", offer == null ? null : offerSummary(offer));
         return summary;
     }
 
@@ -83,9 +88,27 @@ public class SupportUserOrdersTool implements SupportAssistantTool {
         Map<String, Object> summary = new LinkedHashMap<>();
         summary.put("id", offer.getId());
         summary.put("title", offer.getTitle());
-        summary.put("pickupLocation", offer.getPickupLocation());
-        summary.put("pickupTimeWindow", offer.getPickupTimeWindow());
-        summary.put("status", offer.getStatus() == null ? null : offer.getStatus().name());
+        summary.put("currentStatus", offer.getStatus() == null ? null : offer.getStatus().name());
         return summary;
+    }
+
+    private String deriveSupportStatus(Order order) {
+        if (order == null || order.getStatus() == null) {
+            return null;
+        }
+
+        if ("ACTIVE".equals(order.getStatus().name()) && hasPickupWindowEnded(order)) {
+            return "PICKUP_WINDOW_ENDED";
+        }
+
+        return order.getStatus().name();
+    }
+
+    private boolean hasPickupWindowEnded(Order order) {
+        return order != null
+                && order.getStatus() != null
+                && "ACTIVE".equals(order.getStatus().name())
+                && order.getPickupTimeWindow() != null
+                && order.getPickupTimeWindow().hasEnded(LocalDateTime.now());
     }
 }

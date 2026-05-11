@@ -8,15 +8,22 @@ import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
 import sk.posam.fsa.foodrescue.domain.order.OrderFacade;
 import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
 import sk.posam.fsa.foodrescue.domain.order.OrderService;
+import sk.posam.fsa.foodrescue.domain.review.ReviewRepository;
 
 @Configuration
 public class OrderBeanConfiguration {
 
     @Bean
-    public OrderFacade orderFacade(OrderRepository orderRepository,
-                                   OfferRepository offerRepository,
-                                   BusinessRepository businessRepository,
-                                   NotificationRepository notificationRepository) {
-        return new OrderService(orderRepository, offerRepository, businessRepository, notificationRepository);
+    public OrderService orderService(OrderRepository orderRepository,
+                                     OfferRepository offerRepository,
+                                     BusinessRepository businessRepository,
+                                     NotificationRepository notificationRepository,
+                                     ReviewRepository reviewRepository) {
+        return new OrderService(orderRepository, offerRepository, businessRepository, notificationRepository, reviewRepository);
+    }
+
+    @Bean
+    public OrderFacade orderFacade(OrderService orderService) {
+        return orderService;
     }
 }

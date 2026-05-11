@@ -7,13 +7,22 @@ import sk.posam.fsa.foodrescue.domain.notification.NotificationRepository;
 import sk.posam.fsa.foodrescue.domain.notification.NotificationType;
 import sk.posam.fsa.foodrescue.domain.offer.Offer;
 import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
+import sk.posam.fsa.foodrescue.domain.review.Review;
+import sk.posam.fsa.foodrescue.domain.review.ReviewRepository;
 import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
 import sk.posam.fsa.foodrescue.domain.user.User;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 import java.util.UUID;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 public class OrderService implements OrderFacade {
 
@@ -21,31 +30,38 @@ public class OrderService implements OrderFacade {
     private final OfferRepository offerRepository;
     private final BusinessRepository businessRepository;
     private final NotificationRepository notificationRepository;
+    private final ReviewRepository reviewRepository;
 
     public OrderService(OrderRepository orderRepository,
                         OfferRepository offerRepository,
                         BusinessRepository businessRepository,
-                        NotificationRepository notificationRepository) {
+                        NotificationRepository notificationRepository,
+                        ReviewRepository reviewRepository) {
         this.orderRepository = orderRepository;
         this.offerRepository = offerRepository;
         this.businessRepository = businessRepository;
         this.notificationRepository = notificationRepository;
+        this.reviewRepository = reviewRepository;
     }
 
     @Override
-    public List<Order> getOrders(User currentUser, Long businessId) {
+    public List<OrderDetailsView> getOrders(User currentUser, Long businessId) {
         if (businessId == null) {
             ensureActiveUser(currentUser, "Only active users can view orders");
-            return orderRepository.findAllByUserId(currentUser.getId());
+            List<Order> userOrders = orderRepository.findAllByUserId(currentUser.getId());
+            settleExpiredOrders(userOrders);
+            return enrichOrders(userOrders);
         }
 
         Business business = resolveBusiness(businessId);
         ensureBusinessManager(currentUser, business, "You are not allowed to view orders for this business");
-        return orderRepository.findAllByBusinessId(businessId);
+        List<Order> businessOrders = orderRepository.findAllByBusinessId(businessId);
+        settleExpiredOrders(businessOrders);
+        return enrichOrders(businessOrders);
     }
 
     @Override
-    public Order get(User currentUser, Long id) {
+    public OrderDetailsView get(User currentUser, Long id) {
         Order order = resolveOrder(id);
         Business business = resolveBusiness(order.getBusinessId());
 
@@ -56,11 +72,13 @@ public class OrderService implements OrderFacade {
             );
         }
 
-        return order;
+        order = settleExpiredOrderIfNeeded(order, business);
+
+        return toOrderDetailsView(order, reviewRepository.findByReservationId(order.getId()).orElse(null));
     }
 
     @Override
-    public Order create(User currentUser, Long offerId, Integer quantity, String cardHolderName, String cardLast4) {
+    public OrderDetailsView create(User currentUser, Long offerId, Integer quantity, String cardHolderName, String cardLast4) {
         ensureActiveUser(currentUser, "Only active users can create an order");
 
         Offer offer = resolveOffer(offerId);
@@ -70,6 +88,13 @@ public class OrderService implements OrderFacade {
             throw new FoodRescueException(
                     FoodRescueException.Type.FORBIDDEN,
                     "Only offers of active businesses can be purchased"
+            );
+        }
+
+        if (business.belongsTo(currentUser)) {
+            throw new FoodRescueException(
+                    FoodRescueException.Type.FORBIDDEN,
+                    "You cannot reserve an offer from your own business"
             );
         }
 
@@ -134,13 +159,14 @@ public class OrderService implements OrderFacade {
             );
         }
 
-        return savedOrder;
+        return toOrderDetailsView(savedOrder, null);
     }
 
     @Override
     public OrderPickupPass getPickupPass(User currentUser, Long id) {
         Order order = resolveOrder(id);
         ensureOrderOwnerOrAdmin(currentUser, order, "You are not allowed to access the pickup pass for this order");
+        order = settleExpiredOrderIfNeeded(order);
         ensurePickupPassAvailable(order, id);
 
         OrderPayment payment = order.getPayment();
@@ -158,12 +184,14 @@ public class OrderService implements OrderFacade {
     }
 
     @Override
-    public Order confirmPickup(User currentUser, Long id, String pickupToken) {
+    public OrderDetailsView confirmPickup(User currentUser, Long id, String pickupToken) {
         Order order = resolveOrder(id);
         Business business = resolveBusiness(order.getBusinessId());
 
         ensureActiveUser(currentUser, "Only active users can confirm pickup");
         ensureBusinessManager(currentUser, business, "You are not allowed to confirm pickup for this order");
+        order = settleExpiredOrderIfNeeded(order, business);
+        ensurePickupCanBeConfirmed(order, id);
 
         order.markPickedUp(currentUser.getId(), pickupToken, generateReference("TRN"));
         Order savedOrder = orderRepository.save(order);
@@ -175,7 +203,43 @@ public class OrderService implements OrderFacade {
                 "Pickup for \"" + savedOrder.getItem().getTitle() + "\" was confirmed and the simulated payout is now assigned to the business."
         );
 
-        return savedOrder;
+        return toOrderDetailsView(savedOrder, null);
+    }
+
+    public int settleExpiredNoShows() {
+        return settleExpiredOrders(orderRepository.findAllByStatus(OrderStatus.ACTIVE)).size();
+    }
+
+    @Override
+    public OrderDetailsView submitReview(User currentUser, Long id, Integer rating, String comment) {
+        ensureActiveUser(currentUser, "Only active users can rate a business");
+
+        Order order = resolveOrder(id);
+        ensureOrderOwner(currentUser, order, "You are not allowed to rate this order");
+
+        if (order.getStatus() != OrderStatus.PICKED_UP) {
+            throw new FoodRescueException(
+                    FoodRescueException.Type.CONFLICT,
+                    "Only picked up orders can be rated"
+            );
+        }
+
+        if (reviewRepository.findByReservationId(order.getId()).isPresent()) {
+            throw new FoodRescueException(
+                    FoodRescueException.Type.CONFLICT,
+                    "This order has already been rated"
+            );
+        }
+
+        Business business = resolveBusiness(order.getBusinessId());
+        Review review = Review.create(order.getId(), business.getId(), currentUser.getId(), rating, comment);
+        review.prepareForCreation();
+
+        Review savedReview = reviewRepository.save(review);
+        business.registerRating(savedReview.getRating());
+        businessRepository.save(business);
+
+        return toOrderDetailsView(order, savedReview);
     }
 
     private Order resolveOrder(Long id) {
@@ -225,6 +289,10 @@ public class OrderService implements OrderFacade {
             return;
         }
 
+        ensureOrderOwner(currentUser, order, message);
+    }
+
+    private void ensureOrderOwner(User currentUser, Order order, String message) {
         if (!order.belongsTo(currentUser)) {
             throw new FoodRescueException(
                     FoodRescueException.Type.FORBIDDEN,
@@ -234,10 +302,26 @@ public class OrderService implements OrderFacade {
     }
 
     private void ensurePickupPassAvailable(Order order, Long orderId) {
+        if (order.getStatus() != OrderStatus.ACTIVE) {
+            throw new FoodRescueException(
+                    FoodRescueException.Type.CONFLICT,
+                    "Order with id=" + orderId + " is no longer available for pickup"
+            );
+        }
+
         if (!order.isPaid() || order.getPayment() == null) {
             throw new FoodRescueException(
                     FoodRescueException.Type.CONFLICT,
                     "Order with id=" + orderId + " does not have a paid pickup pass yet"
+            );
+        }
+    }
+
+    private void ensurePickupCanBeConfirmed(Order order, Long orderId) {
+        if (order.getStatus() != OrderStatus.ACTIVE) {
+            throw new FoodRescueException(
+                    FoodRescueException.Type.CONFLICT,
+                    "Order with id=" + orderId + " is no longer awaiting pickup"
             );
         }
     }
@@ -308,5 +392,99 @@ public class OrderService implements OrderFacade {
         Notification notification = Notification.create(userId, type, title, message);
         notification.prepareForCreation();
         notificationRepository.save(notification);
+    }
+
+    private List<OrderDetailsView> enrichOrders(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            return List.of();
+        }
+
+        List<Long> orderIds = orders.stream()
+                .map(Order::getId)
+                .filter(Objects::nonNull)
+                .toList();
+        Map<Long, Review> reviewsByOrderId = reviewRepository.findAllByReservationIds(orderIds).stream()
+                .filter(review -> review.getReservationId() != null)
+                .collect(Collectors.toMap(Review::getReservationId, Function.identity(), (first, second) -> first));
+
+        return orders.stream()
+                .map(order -> toOrderDetailsView(order, reviewsByOrderId.get(order.getId())))
+                .toList();
+    }
+
+    private OrderDetailsView toOrderDetailsView(Order order, Review review) {
+        return new OrderDetailsView(
+                order,
+                review == null
+                        ? null
+                        : new OrderReviewView(review.getRating(), review.getComment(), review.getCreatedAt())
+        );
+    }
+
+    private List<Order> settleExpiredOrders(List<Order> orders) {
+        if (orders == null || orders.isEmpty()) {
+            return List.of();
+        }
+
+        Map<Long, Business> businessesById = new HashMap<>();
+        List<Order> settledOrders = new ArrayList<>();
+
+        for (Order order : orders) {
+            if (!shouldMarkNoShow(order)) {
+                continue;
+            }
+
+            Business business = businessesById.computeIfAbsent(order.getBusinessId(), this::resolveBusiness);
+            settledOrders.add(settleExpiredOrder(order, business));
+        }
+
+        return settledOrders;
+    }
+
+    private Order settleExpiredOrderIfNeeded(Order order) {
+        if (!shouldMarkNoShow(order)) {
+            return order;
+        }
+
+        return settleExpiredOrder(order, resolveBusiness(order.getBusinessId()));
+    }
+
+    private Order settleExpiredOrderIfNeeded(Order order, Business business) {
+        if (!shouldMarkNoShow(order)) {
+            return order;
+        }
+
+        return settleExpiredOrder(order, business == null ? resolveBusiness(order.getBusinessId()) : business);
+    }
+
+    private Order settleExpiredOrder(Order order, Business business) {
+        order.markNoShow(generateReference("TRN"));
+        Order savedOrder = orderRepository.save(order);
+
+        createNotification(
+                savedOrder.getUserId(),
+                NotificationType.RESERVATION_STATUS_CHANGED,
+                "Pickup missed",
+                "The pickup window for \"" + savedOrder.getItem().getTitle() + "\" ended and the order was not collected in time. Payment was not refunded."
+        );
+
+        if (!Objects.equals(savedOrder.getUserId(), business.getOwnerId())) {
+            createNotification(
+                    business.getOwnerId(),
+                    NotificationType.RESERVATION_STATUS_CHANGED,
+                    "No-show settled",
+                    "Order #" + savedOrder.getId() + " for \"" + savedOrder.getItem().getTitle() + "\" was marked as no-show after the pickup window ended. Payout was assigned to the business."
+            );
+        }
+
+        return savedOrder;
+    }
+
+    private boolean shouldMarkNoShow(Order order) {
+        return order != null
+                && order.getStatus() == OrderStatus.ACTIVE
+                && order.isPaid()
+                && order.getPickupTimeWindow() != null
+                && order.getPickupTimeWindow().hasEnded(LocalDateTime.now());
     }
 }

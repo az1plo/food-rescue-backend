@@ -67,6 +67,7 @@ class HexagonalArchitectureTest {
                 .or().resideInAPackage("sk.posam.fsa.foodrescue.keycloak..")
                 .or().resideInAPackage("sk.posam.fsa.foodrescue.nominatim..")
                 .or().resideInAPackage("sk.posam.fsa.foodrescue.openai..")
+                .or().resideInAPackage("sk.posam.fsa.foodrescue.offermedia..")
                 .or().resideInAPackage("sk.posam.fsa.foodrescue.supportstub..")
                 .should().dependOnClassesThat()
                 .resideInAnyPackage(

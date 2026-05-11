@@ -13,8 +13,11 @@ public class Business {
     private Long ownerId;
     private String name;
     private String description;
+    private String iconUrl;
     private BusinessStatus status;
     private Address address;
+    private Double ratingAverage;
+    private Integer ratingCount;
     private LocalDateTime createdAt;
 
     public Business() {
@@ -44,6 +47,10 @@ public class Business {
         return description;
     }
 
+    public String getIconUrl() {
+        return iconUrl;
+    }
+
     public BusinessStatus getStatus() {
         return status;
     }
@@ -54,6 +61,14 @@ public class Business {
 
     public LocalDateTime getCreatedAt() {
         return createdAt;
+    }
+
+    public Double getRatingAverage() {
+        return ratingAverage;
+    }
+
+    public Integer getRatingCount() {
+        return ratingCount == null ? 0 : ratingCount;
     }
 
     public void setId(Long id) {
@@ -70,6 +85,18 @@ public class Business {
 
     public void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
+    }
+
+    public void setRatingAverage(Double ratingAverage) {
+        this.ratingAverage = ratingAverage;
+    }
+
+    public void setRatingCount(Integer ratingCount) {
+        this.ratingCount = ratingCount;
+    }
+
+    public void setIconUrl(String iconUrl) {
+        this.iconUrl = normalizeOptionalUrl(iconUrl);
     }
 
     public void setAddressCoordinates(Double latitude, Double longitude) {
@@ -129,6 +156,17 @@ public class Business {
         status = BusinessStatus.PENDING;
     }
 
+    public void registerRating(Integer rating) {
+        require(rating != null && rating >= 0 && rating <= 5, "Rating must be between 0 and 5");
+
+        int currentCount = getRatingCount();
+        double currentAverage = ratingAverage == null || currentCount <= 0 ? 0.0 : ratingAverage;
+        double nextAverage = ((currentAverage * currentCount) + rating) / (currentCount + 1);
+
+        ratingCount = currentCount + 1;
+        ratingAverage = roundToOneDecimal(nextAverage);
+    }
+
     public String normalizedName() {
         return normalizeName(name);
     }
@@ -142,6 +180,8 @@ public class Business {
         require(ownerId != null, "Owner is required");
         applyProfile(name, description, address);
         status = BusinessStatus.PENDING;
+        ratingAverage = null;
+        ratingCount = 0;
 
         if (createdAt == null) {
             createdAt = LocalDateTime.now();
@@ -168,6 +208,15 @@ public class Business {
         return normalizedDescription.isBlank() ? null : normalizedDescription;
     }
 
+    private String normalizeOptionalUrl(String value) {
+        if (value == null) {
+            return null;
+        }
+
+        String normalizedValue = value.trim();
+        return normalizedValue.isBlank() ? null : normalizedValue;
+    }
+
     private Address normalizeAddress(Address address) {
         require(address != null, "Address is required");
 
@@ -180,11 +229,13 @@ public class Business {
         return address == null ? null : address.copy();
     }
 
+    private double roundToOneDecimal(double value) {
+        return Math.round(value * 10.0) / 10.0;
+    }
+
     private void require(boolean valid, String message) {
         if (!valid) {
             throw new ValidationException(message);
         }
     }
 }
-
-

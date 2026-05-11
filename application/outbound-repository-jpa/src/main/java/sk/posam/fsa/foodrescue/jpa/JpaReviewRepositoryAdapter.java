@@ -5,6 +5,7 @@ import sk.posam.fsa.foodrescue.domain.review.Review;
 import sk.posam.fsa.foodrescue.domain.review.ReviewRepository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public class JpaReviewRepositoryAdapter implements ReviewRepository {
@@ -27,6 +28,24 @@ public class JpaReviewRepositoryAdapter implements ReviewRepository {
         }
 
         return reviewSpringDataRepository.findAllByBusinessIdInOrderByCreatedAtDesc(businessIds);
+    }
+
+    @Override
+    public List<Review> findAllByReservationIds(List<Long> reservationIds) {
+        if (reservationIds == null || reservationIds.isEmpty()) {
+            return List.of();
+        }
+
+        return reviewSpringDataRepository.findAllByReservationIdIn(reservationIds);
+    }
+
+    @Override
+    public Optional<Review> findByReservationId(Long reservationId) {
+        if (reservationId == null) {
+            return Optional.empty();
+        }
+
+        return reviewSpringDataRepository.findByReservationId(reservationId);
     }
 }
 

@@ -16,13 +16,19 @@ public class OfferMapper {
     private final OfferItemMapper offerItemMapper;
     private final PickupLocationMapper pickupLocationMapper;
     private final PickupTimeWindowMapper pickupTimeWindowMapper;
+    private final OfferCategoryMapper offerCategoryMapper;
+    private final AllergenCodeMapper allergenCodeMapper;
 
     public OfferMapper(OfferItemMapper offerItemMapper,
                        PickupLocationMapper pickupLocationMapper,
-                       PickupTimeWindowMapper pickupTimeWindowMapper) {
+                       PickupTimeWindowMapper pickupTimeWindowMapper,
+                       OfferCategoryMapper offerCategoryMapper,
+                       AllergenCodeMapper allergenCodeMapper) {
         this.offerItemMapper = offerItemMapper;
         this.pickupLocationMapper = pickupLocationMapper;
         this.pickupTimeWindowMapper = pickupTimeWindowMapper;
+        this.offerCategoryMapper = offerCategoryMapper;
+        this.allergenCodeMapper = allergenCodeMapper;
     }
 
     public OfferResponseDto toDto(Offer entity) {
@@ -36,6 +42,11 @@ public class OfferMapper {
         dto.setTitle(entity.getTitle());
         dto.setDescription(entity.getDescription());
         dto.setImageUrl(entity.getImageUrl());
+        dto.setCategory(offerCategoryMapper.toDto(entity.getCategory()));
+        dto.setIllustrativeImage(entity.isIllustrativeImage());
+        dto.setContainsAllergens(allergenCodeMapper.toDtos(entity.getContainsAllergens()));
+        dto.setMayContainAllergens(allergenCodeMapper.toDtos(entity.getMayContainAllergens()));
+        dto.setOtherAllergenNote(entity.getOtherAllergenNote());
         dto.setPrice(toDtoPrice(entity.getPrice()));
         dto.setOriginalPrice(toDtoPrice(entity.getOriginalPrice()));
         dto.setQuantityAvailable(entity.getQuantityAvailable());
@@ -73,6 +84,11 @@ public class OfferMapper {
                 dto.getTitle(),
                 dto.getDescription(),
                 dto.getImageUrl(),
+                offerCategoryMapper.toEntity(dto.getCategory()),
+                Boolean.TRUE.equals(dto.getIllustrativeImage()),
+                allergenCodeMapper.toEntities(dto.getContainsAllergens()),
+                allergenCodeMapper.toEntities(dto.getMayContainAllergens()),
+                dto.getOtherAllergenNote(),
                 toDomainPrice(dto.getPrice()),
                 toDomainPrice(dto.getOriginalPrice()),
                 dto.getQuantityAvailable(),
@@ -94,6 +110,11 @@ public class OfferMapper {
                 dto.getTitle(),
                 dto.getDescription(),
                 dto.getImageUrl(),
+                offerCategoryMapper.toEntity(dto.getCategory()),
+                Boolean.TRUE.equals(dto.getIllustrativeImage()),
+                allergenCodeMapper.toEntities(dto.getContainsAllergens()),
+                allergenCodeMapper.toEntities(dto.getMayContainAllergens()),
+                dto.getOtherAllergenNote(),
                 toDomainPrice(dto.getPrice()),
                 toDomainPrice(dto.getOriginalPrice()),
                 dto.getQuantityAvailable(),

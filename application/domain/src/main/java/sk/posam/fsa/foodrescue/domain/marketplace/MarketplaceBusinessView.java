@@ -6,6 +6,7 @@ public record MarketplaceBusinessView(
         Long id,
         String name,
         String description,
+        String iconUrl,
         Address address,
         Double ratingAverage,
         Integer ratingCount,

@@ -6,13 +6,15 @@ import java.util.List;
 
 public interface OrderFacade {
 
-    List<Order> getOrders(User currentUser, Long businessId);
+    List<OrderDetailsView> getOrders(User currentUser, Long businessId);
 
-    Order get(User currentUser, Long id);
+    OrderDetailsView get(User currentUser, Long id);
 
-    Order create(User currentUser, Long offerId, Integer quantity, String cardHolderName, String cardLast4);
+    OrderDetailsView create(User currentUser, Long offerId, Integer quantity, String cardHolderName, String cardLast4);
 
     OrderPickupPass getPickupPass(User currentUser, Long id);
 
-    Order confirmPickup(User currentUser, Long id, String pickupToken);
+    OrderDetailsView confirmPickup(User currentUser, Long id, String pickupToken);
+
+    OrderDetailsView submitReview(User currentUser, Long id, Integer rating, String comment);
 }

@@ -8,6 +8,7 @@ import sk.posam.fsa.foodrescue.domain.shared.Address;
 import sk.posam.fsa.foodrescue.domain.business.BusinessRepository;
 import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
 import sk.posam.fsa.foodrescue.domain.review.ReviewRepository;
+import sk.posam.fsa.foodrescue.domain.user.User;
 
 import java.time.LocalDateTime;
 import java.util.Comparator;
@@ -33,7 +34,7 @@ public class MarketplaceService implements MarketplaceFacade {
     }
 
     @Override
-    public List<MarketplaceOfferView> findOffers(MarketplaceOfferCriteria criteria) {
+    public List<MarketplaceOfferView> findOffers(User currentUser, MarketplaceOfferCriteria criteria) {
         MarketplaceOfferCriteria resolvedCriteria = criteria == null
                 ? MarketplaceOfferCriteria.defaultCriteria()
                 : criteria.normalize();
@@ -66,6 +67,7 @@ public class MarketplaceService implements MarketplaceFacade {
         return visibleEntries.stream()
                 .map(entry -> toMarketplaceOfferView(
                         entry,
+                        currentUser,
                         ratingsByBusinessId,
                         countsByBusinessId,
                         resolvedCriteria.viewerLatitude(),
@@ -118,17 +120,34 @@ public class MarketplaceService implements MarketplaceFacade {
     }
 
     private Map<Long, RatingSummary> buildRatingsByBusinessId(List<CatalogEntry> entries) {
-        List<Long> businessIds = entries.stream()
-                .map(entry -> entry.business().getId())
+        Map<Long, RatingSummary> storedRatings = entries.stream()
+                .map(CatalogEntry::business)
+                .filter(Objects::nonNull)
+                .filter(business -> business.getId() != null)
+                .collect(Collectors.toMap(
+                        Business::getId,
+                        business -> new RatingSummary(
+                                business.getRatingAverage(),
+                                business.getRatingCount()
+                        ),
+                        (first, second) -> first
+                ));
+
+        List<Long> businessIdsWithoutStoredRatings = entries.stream()
+                .map(CatalogEntry::business)
+                .filter(Objects::nonNull)
+                .filter(business -> business.getId() != null)
+                .filter(business -> business.getRatingAverage() == null && business.getRatingCount() <= 0)
+                .map(Business::getId)
                 .filter(Objects::nonNull)
                 .distinct()
                 .toList();
 
-        if (businessIds.isEmpty()) {
-            return Map.of();
+        if (businessIdsWithoutStoredRatings.isEmpty()) {
+            return storedRatings;
         }
 
-        return reviewRepository.findAllByBusinessIds(businessIds).stream()
+        Map<Long, RatingSummary> calculatedRatings = reviewRepository.findAllByBusinessIds(businessIdsWithoutStoredRatings).stream()
                 .collect(Collectors.groupingBy(
                         Review::getBusinessId,
                         Collectors.collectingAndThen(Collectors.toList(), reviews -> {
@@ -147,6 +166,14 @@ public class MarketplaceService implements MarketplaceFacade {
                             return new RatingSummary(roundToOneDecimal(average), count);
                         })
                 ));
+
+        if (storedRatings.isEmpty()) {
+            return calculatedRatings;
+        }
+
+        Map<Long, RatingSummary> mergedRatings = new java.util.HashMap<>(storedRatings);
+        mergedRatings.putAll(calculatedRatings);
+        return Map.copyOf(mergedRatings);
     }
 
     private Map<Long, BusinessOfferCountSummary> buildCountsByBusinessId(List<CatalogEntry> entries) {
@@ -166,6 +193,7 @@ public class MarketplaceService implements MarketplaceFacade {
     }
 
     private MarketplaceOfferView toMarketplaceOfferView(CatalogEntry entry,
+                                                        User currentUser,
                                                         Map<Long, RatingSummary> ratingsByBusinessId,
                                                         Map<Long, BusinessOfferCountSummary> countsByBusinessId,
                                                         Double viewerLatitude,
@@ -181,19 +209,27 @@ public class MarketplaceService implements MarketplaceFacade {
                 entry.offer().getTitle(),
                 entry.offer().getDescription(),
                 entry.offer().getImageUrl(),
+                entry.offer().getCategory(),
+                entry.offer().isIllustrativeImage(),
+                entry.offer().getContainsAllergens(),
+                entry.offer().getMayContainAllergens(),
+                entry.offer().getOtherAllergenNote(),
                 entry.offer().getPrice().doubleValue(),
                 entry.offer().getOriginalPrice() == null ? null : entry.offer().getOriginalPrice().doubleValue(),
                 entry.offer().getQuantityAvailable(),
                 entry.status(),
                 badgeText(entry),
                 distanceMeters,
-                entry.status() == OfferStatus.AVAILABLE && entry.offer().getQuantityAvailable() > 0,
+                entry.status() == OfferStatus.AVAILABLE
+                        && entry.offer().getQuantityAvailable() > 0
+                        && !entry.business().belongsTo(currentUser),
                 entry.offer().getPickupLocation(),
                 entry.offer().getPickupTimeWindow(),
                 new MarketplaceBusinessView(
                         entry.business().getId(),
                         entry.business().getName(),
                         entry.business().getDescription(),
+                        entry.business().getIconUrl(),
                         entry.business().getAddress(),
                         rating.average(),
                         rating.count(),

@@ -9,6 +9,8 @@ public interface OrderRepository {
 
     Optional<Order> findById(Long id);
 
+    List<Order> findAllByStatus(OrderStatus status);
+
     List<Order> findAllByUserId(Long userId);
 
     List<Order> findAllByBusinessId(Long businessId);

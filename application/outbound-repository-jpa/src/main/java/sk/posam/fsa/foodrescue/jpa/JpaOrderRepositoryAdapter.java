@@ -3,6 +3,7 @@ package sk.posam.fsa.foodrescue.jpa;
 import org.springframework.stereotype.Repository;
 import sk.posam.fsa.foodrescue.domain.order.Order;
 import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
+import sk.posam.fsa.foodrescue.domain.order.OrderStatus;
 
 import java.util.List;
 import java.util.Optional;
@@ -24,6 +25,11 @@ public class JpaOrderRepositoryAdapter implements OrderRepository {
     @Override
     public Optional<Order> findById(Long id) {
         return orderSpringDataRepository.findById(id);
+    }
+
+    @Override
+    public List<Order> findAllByStatus(OrderStatus status) {
+        return orderSpringDataRepository.findAllByStatusOrderByCreatedAtDesc(status);
     }
 
     @Override

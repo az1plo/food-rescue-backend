@@ -21,6 +21,11 @@
         </dependency>
         <dependency>
             <groupId>sk.posam.fsa.foodrescue</groupId>
+            <artifactId>outbound-offer-media-filesystem</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>sk.posam.fsa.foodrescue</groupId>
             <artifactId>inbound-controller-rest</artifactId>
             <version>${project.version}</version>
         </dependency>

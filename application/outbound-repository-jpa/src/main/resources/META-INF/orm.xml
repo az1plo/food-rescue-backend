@@ -173,11 +173,20 @@
             <basic name="description">
                 <column name="description"/>
             </basic>
+            <basic name="iconUrl">
+                <column name="icon_url"/>
+            </basic>
             <basic name="status">
                 <column name="status"/>
                 <enumerated>STRING</enumerated>
             </basic>
             <embedded name="address"/>
+            <basic name="ratingAverage">
+                <column name="rating_average"/>
+            </basic>
+            <basic name="ratingCount">
+                <column name="rating_count"/>
+            </basic>
             <basic name="createdAt">
                 <column name="created_at"/>
             </basic>
@@ -203,6 +212,16 @@
             <basic name="imageUrl">
                 <column name="image_url"/>
             </basic>
+            <basic name="category">
+                <column name="category"/>
+                <enumerated>STRING</enumerated>
+            </basic>
+            <basic name="illustrativeImage">
+                <column name="illustrative_image"/>
+            </basic>
+            <basic name="otherAllergenNote">
+                <column name="other_allergen_note"/>
+            </basic>
             <basic name="price">
                 <column name="price"/>
             </basic>
@@ -216,6 +235,22 @@
                 <column name="status"/>
                 <enumerated>STRING</enumerated>
             </basic>
+            <element-collection name="containsAllergens" fetch="EAGER" target-class="sk.posam.fsa.foodrescue.domain.offer.AllergenCode">
+                <collection-table name="offer_contains_allergen">
+                    <join-column name="offer_id"/>
+                </collection-table>
+                <column name="allergen_code"/>
+                <enumerated>STRING</enumerated>
+                <order-column name="allergen_order"/>
+            </element-collection>
+            <element-collection name="mayContainAllergens" fetch="EAGER" target-class="sk.posam.fsa.foodrescue.domain.offer.AllergenCode">
+                <collection-table name="offer_may_contain_allergen">
+                    <join-column name="offer_id"/>
+                </collection-table>
+                <column name="allergen_code"/>
+                <enumerated>STRING</enumerated>
+                <order-column name="allergen_order"/>
+            </element-collection>
             <element-collection name="items" fetch="EAGER" target-class="sk.posam.fsa.foodrescue.domain.offer.OfferItem">
                 <collection-table name="offer_item">
                     <join-column name="offer_id"/>

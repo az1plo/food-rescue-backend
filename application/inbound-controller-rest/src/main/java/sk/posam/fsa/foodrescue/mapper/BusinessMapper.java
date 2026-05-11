@@ -26,12 +26,15 @@ public class BusinessMapper {
         dto.setOwnerId(entity.getOwnerId());
         dto.setName(entity.getName());
         dto.setDescription(entity.getDescription());
+        dto.setIconUrl(entity.getIconUrl());
         dto.setStatus(
                 entity.getStatus() != null
                         ? BusinessStatusDto.valueOf(entity.getStatus().name())
                         : null
         );
         dto.setAddress(addressMapper.toDto(entity.getAddress()));
+        dto.setRatingAverage(entity.getRatingAverage());
+        dto.setRatingCount(entity.getRatingCount());
         dto.setCreatedAt(
                 entity.getCreatedAt() != null
                         ? ApiDateTimeMapper.toUtcOffsetDateTime(entity.getCreatedAt())

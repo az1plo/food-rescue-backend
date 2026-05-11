@@ -18,13 +18,19 @@ public class MarketplaceOfferMapper {
     private final AddressMapper addressMapper;
     private final PickupLocationMapper pickupLocationMapper;
     private final PickupTimeWindowMapper pickupTimeWindowMapper;
+    private final OfferCategoryMapper offerCategoryMapper;
+    private final AllergenCodeMapper allergenCodeMapper;
 
     public MarketplaceOfferMapper(AddressMapper addressMapper,
                                   PickupLocationMapper pickupLocationMapper,
-                                  PickupTimeWindowMapper pickupTimeWindowMapper) {
+                                  PickupTimeWindowMapper pickupTimeWindowMapper,
+                                  OfferCategoryMapper offerCategoryMapper,
+                                  AllergenCodeMapper allergenCodeMapper) {
         this.addressMapper = addressMapper;
         this.pickupLocationMapper = pickupLocationMapper;
         this.pickupTimeWindowMapper = pickupTimeWindowMapper;
+        this.offerCategoryMapper = offerCategoryMapper;
+        this.allergenCodeMapper = allergenCodeMapper;
     }
 
     public List<MarketplaceOfferResponseDto> toDtos(List<MarketplaceOfferView> offers) {
@@ -43,6 +49,11 @@ public class MarketplaceOfferMapper {
         dto.setTitle(offer.title());
         dto.setDescription(offer.description());
         dto.setImageUrl(offer.imageUrl());
+        dto.setCategory(offerCategoryMapper.toDto(offer.category()));
+        dto.setIllustrativeImage(offer.illustrativeImage());
+        dto.setContainsAllergens(allergenCodeMapper.toDtos(offer.containsAllergens()));
+        dto.setMayContainAllergens(allergenCodeMapper.toDtos(offer.mayContainAllergens()));
+        dto.setOtherAllergenNote(offer.otherAllergenNote());
         dto.setPrice(offer.price());
         dto.setOriginalPrice(offer.originalPrice());
         dto.setQuantityAvailable(offer.quantityAvailable());
@@ -87,6 +98,7 @@ public class MarketplaceOfferMapper {
         dto.setId(business.id());
         dto.setName(business.name());
         dto.setDescription(business.description());
+        dto.setIconUrl(business.iconUrl());
         dto.setAddress(addressMapper.toDto(business.address()));
         dto.setRatingAverage(business.ratingAverage());
         dto.setRatingCount(business.ratingCount());

@@ -10,12 +10,13 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import sk.posam.fsa.foodrescue.domain.offer.PickupLocation;
 import sk.posam.fsa.foodrescue.domain.offer.PickupTimeWindow;
-import sk.posam.fsa.foodrescue.domain.order.Order;
+import sk.posam.fsa.foodrescue.domain.order.OrderDetailsView;
 import sk.posam.fsa.foodrescue.domain.order.OrderFacade;
 import sk.posam.fsa.foodrescue.domain.order.OrderItem;
 import sk.posam.fsa.foodrescue.domain.order.OrderPayment;
 import sk.posam.fsa.foodrescue.domain.order.OrderPickupConfirmation;
 import sk.posam.fsa.foodrescue.domain.order.OrderPickupPass;
+import sk.posam.fsa.foodrescue.domain.order.OrderReviewView;
 import sk.posam.fsa.foodrescue.domain.order.OrderStatus;
 import sk.posam.fsa.foodrescue.domain.user.User;
 import sk.posam.fsa.foodrescue.security.CurrentUserDetailService;
@@ -50,14 +51,14 @@ public class OrderController {
     @PostMapping
     public ResponseEntity<OrderResponse> createOrder(@RequestBody CreateOrderRequest request) {
         User user = currentUserDetailService.getFullCurrentUser();
-        Order order = orderFacade.create(
+        OrderDetailsView order = orderFacade.create(
                 user,
                 request.offerId(),
                 request.quantity(),
                 request.cardHolderName(),
                 request.cardLast4()
         );
-        return ResponseEntity.created(URI.create("/orders/" + order.getId()))
+        return ResponseEntity.created(URI.create("/orders/" + order.order().getId()))
                 .body(toResponse(order));
     }
 
@@ -77,11 +78,20 @@ public class OrderController {
     public ResponseEntity<OrderResponse> confirmPickup(@PathVariable Long id,
                                                        @RequestBody ConfirmOrderPickupRequest request) {
         User user = currentUserDetailService.getFullCurrentUser();
-        Order order = orderFacade.confirmPickup(user, id, request.pickupToken());
+        OrderDetailsView order = orderFacade.confirmPickup(user, id, request.pickupToken());
         return ResponseEntity.ok(toResponse(order));
     }
 
-    private OrderResponse toResponse(Order order) {
+    @PostMapping("/{id}/review")
+    public ResponseEntity<OrderResponse> submitReview(@PathVariable Long id,
+                                                      @RequestBody CreateOrderReviewRequest request) {
+        User user = currentUserDetailService.getFullCurrentUser();
+        OrderDetailsView order = orderFacade.submitReview(user, id, request.rating(), request.comment());
+        return ResponseEntity.ok(toResponse(order));
+    }
+
+    private OrderResponse toResponse(OrderDetailsView orderView) {
+        var order = orderView.order();
         return new OrderResponse(
                 order.getId(),
                 order.getBusinessId(),
@@ -94,7 +104,8 @@ public class OrderController {
                 order.getCreatedAt(),
                 order.getCancelledAt(),
                 toPickupConfirmationResponse(order.getPickupConfirmation()),
-                toPaymentResponse(order.getPayment())
+                toPaymentResponse(order.getPayment()),
+                toReviewResponse(orderView.review())
         );
     }
 
@@ -142,6 +153,18 @@ public class OrderController {
         );
     }
 
+    private OrderReviewResponse toReviewResponse(OrderReviewView review) {
+        if (review == null) {
+            return null;
+        }
+
+        return new OrderReviewResponse(
+                review.rating(),
+                review.comment(),
+                review.createdAt()
+        );
+    }
+
     private OrderPickupPassResponse toPickupPassResponse(OrderPickupPass pickupPass) {
         return new OrderPickupPassResponse(
                 pickupPass.orderId(),
@@ -167,6 +190,12 @@ public class OrderController {
     public record ConfirmOrderPickupRequest(String pickupToken) {
     }
 
+    public record CreateOrderReviewRequest(
+            Integer rating,
+            String comment
+    ) {
+    }
+
     public record OrderResponse(
             Long id,
             Long businessId,
@@ -179,7 +208,8 @@ public class OrderController {
             LocalDateTime createdAt,
             LocalDateTime cancelledAt,
             OrderPickupConfirmationResponse pickupConfirmation,
-            OrderPaymentResponse payment
+            OrderPaymentResponse payment,
+            OrderReviewResponse review
     ) {
     }
 
@@ -222,6 +252,13 @@ public class OrderController {
             LocalDateTime issuedAt,
             LocalDateTime paidAt,
             String providerReference
+    ) {
+    }
+
+    public record OrderReviewResponse(
+            Integer rating,
+            String comment,
+            LocalDateTime createdAt
     ) {
     }
 }

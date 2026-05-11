@@ -1,12 +1,13 @@
 package sk.posam.fsa.foodrescue.domain.offer;
 
 import sk.posam.fsa.foodrescue.domain.business.Business;
-import sk.posam.fsa.foodrescue.domain.shared.ValidationException;
 import sk.posam.fsa.foodrescue.domain.shared.Address;
+import sk.posam.fsa.foodrescue.domain.shared.ValidationException;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.LinkedHashSet;
 import java.util.List;
 
 public class Offer {
@@ -16,6 +17,11 @@ public class Offer {
     private String title;
     private String description;
     private String imageUrl;
+    private OfferCategory category;
+    private boolean illustrativeImage;
+    private List<AllergenCode> containsAllergens = new ArrayList<>();
+    private List<AllergenCode> mayContainAllergens = new ArrayList<>();
+    private String otherAllergenNote;
     private BigDecimal price;
     private BigDecimal originalPrice;
     private Integer quantityAvailable;
@@ -32,6 +38,11 @@ public class Offer {
                                   String title,
                                   String description,
                                   String imageUrl,
+                                  OfferCategory category,
+                                  boolean illustrativeImage,
+                                  List<AllergenCode> containsAllergens,
+                                  List<AllergenCode> mayContainAllergens,
+                                  String otherAllergenNote,
                                   BigDecimal price,
                                   BigDecimal originalPrice,
                                   Integer quantityAvailable,
@@ -43,6 +54,11 @@ public class Offer {
         offer.title = title;
         offer.description = description;
         offer.imageUrl = imageUrl;
+        offer.category = category;
+        offer.illustrativeImage = illustrativeImage;
+        offer.containsAllergens = copyAllergens(containsAllergens);
+        offer.mayContainAllergens = copyAllergens(mayContainAllergens);
+        offer.otherAllergenNote = otherAllergenNote;
         offer.price = price;
         offer.originalPrice = originalPrice;
         offer.quantityAvailable = quantityAvailable;
@@ -70,6 +86,26 @@ public class Offer {
 
     public String getImageUrl() {
         return imageUrl;
+    }
+
+    public OfferCategory getCategory() {
+        return category;
+    }
+
+    public boolean isIllustrativeImage() {
+        return illustrativeImage;
+    }
+
+    public List<AllergenCode> getContainsAllergens() {
+        return containsAllergens == null ? List.of() : List.copyOf(containsAllergens);
+    }
+
+    public List<AllergenCode> getMayContainAllergens() {
+        return mayContainAllergens == null ? List.of() : List.copyOf(mayContainAllergens);
+    }
+
+    public String getOtherAllergenNote() {
+        return otherAllergenNote;
     }
 
     public BigDecimal getPrice() {
@@ -160,6 +196,11 @@ public class Offer {
                 newData.title,
                 newData.description,
                 newData.imageUrl,
+                newData.category,
+                newData.illustrativeImage,
+                newData.containsAllergens,
+                newData.mayContainAllergens,
+                newData.otherAllergenNote,
                 newData.price,
                 newData.originalPrice,
                 newData.quantityAvailable,
@@ -175,7 +216,22 @@ public class Offer {
 
     public void prepareForCreation() {
         require(businessId != null, "Business is required");
-        applyDetails(title, description, imageUrl, price, originalPrice, quantityAvailable, items, pickupLocation, pickupTimeWindow);
+        applyDetails(
+                title,
+                description,
+                imageUrl,
+                category,
+                illustrativeImage,
+                containsAllergens,
+                mayContainAllergens,
+                otherAllergenNote,
+                price,
+                originalPrice,
+                quantityAvailable,
+                items,
+                pickupLocation,
+                pickupTimeWindow
+        );
 
         if (status == null) {
             status = OfferStatus.DRAFT;
@@ -248,6 +304,11 @@ public class Offer {
     private void applyDetails(String title,
                               String description,
                               String imageUrl,
+                              OfferCategory category,
+                              boolean illustrativeImage,
+                              List<AllergenCode> containsAllergens,
+                              List<AllergenCode> mayContainAllergens,
+                              String otherAllergenNote,
                               BigDecimal price,
                               BigDecimal originalPrice,
                               Integer quantityAvailable,
@@ -257,6 +318,12 @@ public class Offer {
         this.title = normalizeTitle(title);
         this.description = normalizeDescription(description);
         this.imageUrl = normalizeImageUrl(imageUrl);
+        this.category = normalizeCategory(category);
+        this.illustrativeImage = illustrativeImage;
+        this.containsAllergens = normalizeAllergens(containsAllergens, "containsAllergens");
+        this.mayContainAllergens = normalizeAllergens(mayContainAllergens, "mayContainAllergens");
+        validateAllergenCollections(this.containsAllergens, this.mayContainAllergens);
+        this.otherAllergenNote = normalizeOtherAllergenNote(otherAllergenNote);
         this.price = normalizePrice(price);
         this.originalPrice = normalizeOriginalPrice(originalPrice, this.price);
         this.quantityAvailable = normalizeQuantity(quantityAvailable);
@@ -291,6 +358,51 @@ public class Offer {
 
         require(normalizedImageUrl.length() <= 1024, "Offer image URL is too long");
         return normalizedImageUrl;
+    }
+
+    private OfferCategory normalizeCategory(OfferCategory category) {
+        return category == null ? OfferCategory.OTHER : category;
+    }
+
+    private List<AllergenCode> normalizeAllergens(List<AllergenCode> allergens, String fieldName) {
+        if (allergens == null || allergens.isEmpty()) {
+            return new ArrayList<>();
+        }
+
+        LinkedHashSet<AllergenCode> normalizedAllergens = new LinkedHashSet<>();
+        for (AllergenCode allergen : allergens) {
+            require(allergen != null, fieldName + " contains an invalid allergen");
+            normalizedAllergens.add(allergen);
+        }
+
+        if (normalizedAllergens.contains(AllergenCode.UNKNOWN) && normalizedAllergens.size() > 1) {
+            throw new ValidationException(fieldName + " cannot combine UNKNOWN with other allergens");
+        }
+
+        return new ArrayList<>(normalizedAllergens);
+    }
+
+    private void validateAllergenCollections(List<AllergenCode> containsAllergens,
+                                             List<AllergenCode> mayContainAllergens) {
+        for (AllergenCode allergen : containsAllergens) {
+            if (mayContainAllergens.contains(allergen)) {
+                throw new ValidationException("The same allergen cannot be both confirmed and marked as may contain");
+            }
+        }
+    }
+
+    private String normalizeOtherAllergenNote(String otherAllergenNote) {
+        if (otherAllergenNote == null) {
+            return null;
+        }
+
+        String normalizedOtherAllergenNote = otherAllergenNote.trim();
+        if (normalizedOtherAllergenNote.isBlank()) {
+            return null;
+        }
+
+        require(normalizedOtherAllergenNote.length() <= 500, "Other allergen note is too long");
+        return normalizedOtherAllergenNote;
     }
 
     private BigDecimal normalizePrice(BigDecimal price) {
@@ -353,6 +465,14 @@ public class Offer {
                 .collect(java.util.stream.Collectors.toCollection(ArrayList::new));
     }
 
+    private static List<AllergenCode> copyAllergens(List<AllergenCode> allergens) {
+        if (allergens == null) {
+            return new ArrayList<>();
+        }
+
+        return new ArrayList<>(allergens);
+    }
+
     private static PickupLocation copyPickupLocation(PickupLocation pickupLocation) {
         return pickupLocation == null ? null : pickupLocation.copy();
     }
@@ -367,4 +487,3 @@ public class Offer {
         }
     }
 }
-

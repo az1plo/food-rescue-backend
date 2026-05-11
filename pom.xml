@@ -29,6 +29,7 @@
     <modules>
         <module>application/domain</module>
         <module>application/outbound-repository-jpa</module>
+        <module>application/outbound-offer-media-filesystem</module>
         <module>application/outbound-identity-keycloak</module>
         <module>application/outbound-geocoding-nominatim</module>
         <module>application/outbound-support-openai</module>

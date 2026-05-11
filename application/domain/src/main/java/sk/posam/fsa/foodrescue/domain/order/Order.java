@@ -195,6 +195,14 @@ public class Order {
         status = OrderStatus.PICKED_UP;
     }
 
+    public void markNoShow(String transferReference) {
+        require(status == OrderStatus.ACTIVE, "Only active orders can be marked as no-show");
+        require(payment != null, "Only paid orders can be marked as no-show");
+
+        payment.markTransferredToBusiness(transferReference);
+        status = OrderStatus.NO_SHOW;
+    }
+
     public boolean canBeManagedBy(User user, Business business) {
         return belongsTo(user) || (business != null && business.canBeManagedBy(user));
     }
