@@ -39,8 +39,10 @@ public class SecurityConfiguration {
     // Method for configuring authorization rules
     private void configureAuthorizationRules(AuthorizeHttpRequestsConfigurer<HttpSecurity>.AuthorizationManagerRequestMatcherRegistry auth) {
         auth
-                // Allowing access to actuator endpoints without authorization
-                .requestMatchers("/actuator/**").permitAll()
+                .requestMatchers("/actuator/health").permitAll()
+                .requestMatchers("/actuator/health/liveness").permitAll()
+                .requestMatchers("/actuator/health/readiness").permitAll()
+                .requestMatchers("/actuator/prometheus").permitAll()
                 .requestMatchers(HttpMethod.POST, "/auth/token").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users/register").permitAll()
                 .requestMatchers(HttpMethod.POST, "/users").hasRole("ADMIN")
