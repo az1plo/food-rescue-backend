@@ -1,20 +1,15 @@
 package sk.posam.fsa.foodrescue.offermedia;
 
-import org.springframework.stereotype.Component;
 import sk.posam.fsa.foodrescue.domain.offerassistant.OfferImageStorage;
 import sk.posam.fsa.foodrescue.domain.offerassistant.OfferImageUpload;
 import sk.posam.fsa.foodrescue.domain.offerassistant.StoredOfferImage;
 import sk.posam.fsa.foodrescue.domain.offerassistant.StoredOfferImageContent;
-import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
 
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.Locale;
-import java.util.UUID;
 
-@Component
 public class FilesystemOfferImageStorage implements OfferImageStorage {
 
     private final Path baseDirectory;
@@ -30,8 +25,7 @@ public class FilesystemOfferImageStorage implements OfferImageStorage {
 
     @Override
     public StoredOfferImage store(OfferImageUpload upload, boolean illustrativeImage) {
-        String extension = resolveExtension(upload.contentType(), upload.fileName());
-        String imageId = UUID.randomUUID().toString().replace("-", "") + extension;
+        String imageId = OfferMediaFileNaming.nextImageId(upload.contentType(), upload.fileName());
         Path targetPath = resolvePath(imageId);
 
         try {
@@ -43,7 +37,7 @@ public class FilesystemOfferImageStorage implements OfferImageStorage {
         return new StoredOfferImage(
                 imageId,
                 "/offer-images/" + imageId,
-                normalizeContentType(upload.contentType(), imageId),
+                OfferMediaFileNaming.normalizeContentType(upload.contentType(), imageId),
                 illustrativeImage
         );
     }
@@ -58,7 +52,7 @@ public class FilesystemOfferImageStorage implements OfferImageStorage {
         try {
             return new StoredOfferImageContent(
                     imageId,
-                    normalizeContentType(null, imageId),
+                    OfferMediaFileNaming.normalizeContentType(null, imageId),
                     Files.readAllBytes(imagePath)
             );
         } catch (IOException ex) {
@@ -67,46 +61,12 @@ public class FilesystemOfferImageStorage implements OfferImageStorage {
     }
 
     private Path resolvePath(String imageId) {
-        if (imageId == null || imageId.isBlank() || imageId.contains("/") || imageId.contains("\\") || imageId.contains("..")) {
-            throw new FoodRescueException(FoodRescueException.Type.NOT_FOUND, "Offer image was not found");
-        }
-
-        Path resolvedPath = baseDirectory.resolve(imageId).normalize();
+        Path resolvedPath = baseDirectory.resolve(
+                        OfferMediaFileNaming.validateImageId(imageId, "Offer image was not found"))
+                .normalize();
         if (!resolvedPath.startsWith(baseDirectory)) {
-            throw new FoodRescueException(FoodRescueException.Type.NOT_FOUND, "Offer image was not found");
+            throw OfferMediaFileNaming.notFound("Offer image was not found");
         }
         return resolvedPath;
-    }
-
-    private String resolveExtension(String contentType, String fileName) {
-        String normalizedContentType = contentType == null ? "" : contentType.trim().toLowerCase(Locale.ROOT);
-        return switch (normalizedContentType) {
-            case "image/png" -> ".png";
-            case "image/jpeg" -> fileName != null && fileName.toLowerCase(Locale.ROOT).endsWith(".jpeg") ? ".jpeg" : ".jpg";
-            case "image/webp" -> ".webp";
-            case "image/svg+xml" -> ".svg";
-            default -> ".img";
-        };
-    }
-
-    private String normalizeContentType(String contentType, String imageId) {
-        if (contentType != null && !contentType.isBlank()) {
-            return contentType.trim();
-        }
-
-        String normalizedImageId = imageId == null ? "" : imageId.toLowerCase(Locale.ROOT);
-        if (normalizedImageId.endsWith(".png")) {
-            return "image/png";
-        }
-        if (normalizedImageId.endsWith(".jpg") || normalizedImageId.endsWith(".jpeg")) {
-            return "image/jpeg";
-        }
-        if (normalizedImageId.endsWith(".webp")) {
-            return "image/webp";
-        }
-        if (normalizedImageId.endsWith(".svg")) {
-            return "image/svg+xml";
-        }
-        return "application/octet-stream";
     }
 }

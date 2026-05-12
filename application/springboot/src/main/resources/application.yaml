@@ -46,7 +46,12 @@ food-rescue:
       image-size: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_IMAGE_SIZE:1024x1024}
       image-quality: ${FOOD_RESCUE_OFFER_ASSISTANT_OPENAI_IMAGE_QUALITY:medium}
   offer-media:
+    provider: ${FOOD_RESCUE_OFFER_MEDIA_PROVIDER:filesystem}
     base-dir: ${FOOD_RESCUE_OFFER_MEDIA_BASE_DIR:${java.io.tmpdir}/food-rescue-offer-media}
+    azure:
+      connection-string: ${FOOD_RESCUE_OFFER_MEDIA_AZURE_CONNECTION_STRING:}
+      business-icons-container: ${FOOD_RESCUE_OFFER_MEDIA_AZURE_BUSINESS_ICONS_CONTAINER:business-icons}
+      offer-images-container: ${FOOD_RESCUE_OFFER_MEDIA_AZURE_OFFER_IMAGES_CONTAINER:offer-images}
   support:
     provider: ${FOOD_RESCUE_SUPPORT_PROVIDER:stub}
     openai:
