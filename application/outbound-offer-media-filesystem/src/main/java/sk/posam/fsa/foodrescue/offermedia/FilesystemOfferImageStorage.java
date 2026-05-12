@@ -4,6 +4,7 @@ import sk.posam.fsa.foodrescue.domain.offerassistant.OfferImageStorage;
 import sk.posam.fsa.foodrescue.domain.offerassistant.OfferImageUpload;
 import sk.posam.fsa.foodrescue.domain.offerassistant.StoredOfferImage;
 import sk.posam.fsa.foodrescue.domain.offerassistant.StoredOfferImageContent;
+import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
 
 import java.io.IOException;
 import java.nio.file.Files;

@@ -4,6 +4,7 @@ import sk.posam.fsa.foodrescue.domain.business.BusinessIconStorage;
 import sk.posam.fsa.foodrescue.domain.business.BusinessIconUpload;
 import sk.posam.fsa.foodrescue.domain.business.StoredBusinessIcon;
 import sk.posam.fsa.foodrescue.domain.business.StoredBusinessIconContent;
+import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
 
 import java.io.IOException;
 import java.nio.file.Files;
