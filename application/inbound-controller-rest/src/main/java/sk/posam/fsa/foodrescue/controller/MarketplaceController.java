@@ -33,12 +33,14 @@ public class MarketplaceController implements MarketplaceApi {
     public ResponseEntity<List<MarketplaceOfferResponseDto>> getMarketplaceOffers(String q,
                                                                                   Double viewerLat,
                                                                                   Double viewerLng,
+                                                                                  Integer radiusKm,
                                                                                   MarketplaceOfferSortDto sort,
                                                                                   Boolean includeUnavailable) {
         MarketplaceOfferCriteria criteria = marketplaceOfferMapper.toCriteria(
                 q,
                 viewerLat,
                 viewerLng,
+                radiusKm,
                 sort,
                 includeUnavailable
         );

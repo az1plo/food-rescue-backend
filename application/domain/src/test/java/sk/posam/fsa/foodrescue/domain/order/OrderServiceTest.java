@@ -197,6 +197,36 @@ class OrderServiceTest {
         assertTrue(exception.getMessage().contains("own business"));
     }
 
+    @Test
+    void confirmPickupRejectsAdminForForeignBusinessWorkspaceFlow() {
+        Order order = expiredActivePaidOrder();
+        order.setPickupTimeWindow(PickupTimeWindow.of(
+                LocalDateTime.now().plusHours(1),
+                LocalDateTime.now().plusHours(2)
+        ));
+        Business business = activeBusiness(order.getBusinessId(), 77L);
+        User admin = activeAdmin(999L);
+
+        when(orderRepository.findById(order.getId())).thenReturn(Optional.of(order));
+        when(businessRepository.findById(order.getBusinessId())).thenReturn(Optional.of(business));
+
+        OrderService service = new OrderService(
+                orderRepository,
+                offerRepository,
+                businessRepository,
+                notificationRepository,
+                reviewRepository
+        );
+
+        FoodRescueException exception = assertThrows(
+                FoodRescueException.class,
+                () -> service.confirmPickup(admin, order.getId(), order.getPayment().getPickupToken())
+        );
+
+        assertEquals(FoodRescueException.Type.FORBIDDEN, exception.getType());
+        assertTrue(exception.getMessage().contains("not allowed"));
+    }
+
     private Order pickedUpOrder() {
         Order order = new Order();
         order.setId(11L);
@@ -291,6 +321,14 @@ class OrderServiceTest {
         User user = new User();
         user.setId(userId);
         user.setRole(UserRole.USER);
+        user.setStatus(UserStatus.ACTIVE);
+        return user;
+    }
+
+    private User activeAdmin(Long userId) {
+        User user = new User();
+        user.setId(userId);
+        user.setRole(UserRole.ADMIN);
         user.setStatus(UserStatus.ACTIVE);
         return user;
     }

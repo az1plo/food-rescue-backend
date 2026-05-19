@@ -1,32 +1,48 @@
 package sk.posam.fsa.foodrescue.controller;
 
-import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.util.MultiValueMap;
 import sk.posam.fsa.foodrescue.domain.user.AuthFacade;
-
-import java.util.Map;
+import sk.posam.fsa.foodrescue.mapper.AuthMapper;
+import sk.posam.fsa.foodrescue.rest.api.AuthApi;
+import sk.posam.fsa.foodrescue.rest.dto.AuthTokenExchangeResponseDto;
 
 @RestController
-public class AuthController {
+public class AuthController implements AuthApi {
 
     private final AuthFacade authFacade;
+    private final AuthMapper authMapper;
 
-    public AuthController(AuthFacade authFacade) {
+    public AuthController(AuthFacade authFacade, AuthMapper authMapper) {
         this.authFacade = authFacade;
+        this.authMapper = authMapper;
     }
 
-    @PostMapping(
-            value = "/auth/token",
-            consumes = MediaType.APPLICATION_FORM_URLENCODED_VALUE,
-            produces = MediaType.APPLICATION_JSON_VALUE
-    )
-    public ResponseEntity<Map<String, Object>> exchangeToken(@RequestParam MultiValueMap<String, String> formData) {
-        Map<String, Object> response = authFacade.exchangeToken(formData.toSingleValueMap());
-        return ResponseEntity.ok(response);
+    @Override
+    public ResponseEntity<AuthTokenExchangeResponseDto> exchangeToken(String grantType,
+                                                                      String username,
+                                                                      String password,
+                                                                      String refreshToken,
+                                                                      String code,
+                                                                      String redirectUri,
+                                                                      String codeVerifier,
+                                                                      String scope) {
+        return ResponseEntity.ok(
+                authMapper.toDto(
+                        authFacade.exchangeToken(
+                                authMapper.toRequestParameters(
+                                        grantType,
+                                        username,
+                                        password,
+                                        refreshToken,
+                                        code,
+                                        redirectUri,
+                                        codeVerifier,
+                                        scope
+                                )
+                        )
+                )
+        );
     }
 }
 

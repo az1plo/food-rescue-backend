@@ -74,11 +74,37 @@ class MarketplaceServiceTest {
         assertTrue(offers.get(0).canReserve());
     }
 
+    @Test
+    void filtersOffersOutsideRequestedRadius() {
+        Business business = activeBusiness(7L, 3L);
+        Offer offer = activeOffer(business);
+        User currentUser = activeUser(99L);
+
+        when(offerRepository.findAll()).thenReturn(List.of(offer));
+        when(businessRepository.findAll()).thenReturn(List.of(business));
+        when(reviewRepository.findAllByBusinessIds(List.of(business.getId()))).thenReturn(List.of());
+
+        MarketplaceService service = new MarketplaceService(offerRepository, businessRepository, reviewRepository);
+
+        MarketplaceOfferCriteria criteria = new MarketplaceOfferCriteria(
+                null,
+                48.7000,
+                21.2000,
+                1,
+                MarketplaceOfferSort.DISTANCE,
+                false
+        );
+
+        List<MarketplaceOfferView> offers = service.findOffers(currentUser, criteria);
+
+        assertTrue(offers.isEmpty());
+    }
+
     private Business activeBusiness(Long businessId, Long ownerId) {
         Business business = Business.fromProfile(
                 "Savr Bakery",
                 "Local bakery",
-                new Address("Hlavna 10", "Kosice", "04011", "Slovakia")
+                new Address("Hlavna 10", "Kosice", "04011", "Slovakia", 48.7260, 21.2580)
         );
         business.setId(businessId);
         business.assignOwner(ownerId);
@@ -101,7 +127,7 @@ class MarketplaceServiceTest {
                 null,
                 4,
                 List.of(OfferItem.of("Croissant", 2)),
-                PickupLocation.of(new Address("Hlavna 10", "Kosice", "04011", "Slovakia"), null),
+                PickupLocation.of(new Address("Hlavna 10", "Kosice", "04011", "Slovakia", 48.7260, 21.2580), null),
                 PickupTimeWindow.of(
                         LocalDateTime.now().plusHours(1),
                         LocalDateTime.now().plusHours(3)

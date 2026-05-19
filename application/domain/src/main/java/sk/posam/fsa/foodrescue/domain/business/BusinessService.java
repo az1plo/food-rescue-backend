@@ -55,9 +55,6 @@ public class BusinessService implements BusinessFacade {
 
     @Override
     public List<Business> getBusinesses(User currentUser) {
-        if (currentUser.isAdmin()) {
-            return businessRepository.findAll();
-        }
         return businessRepository.findAllByOwnerId(currentUser.getId());
     }
 

@@ -70,12 +70,14 @@ public class MarketplaceOfferMapper {
     public MarketplaceOfferCriteria toCriteria(String q,
                                                Double viewerLat,
                                                Double viewerLng,
+                                               Integer radiusKm,
                                                MarketplaceOfferSortDto sort,
                                                Boolean includeUnavailable) {
         return new MarketplaceOfferCriteria(
                 q,
                 viewerLat,
                 viewerLng,
+                radiusKm,
                 toDomainSort(sort),
                 Boolean.TRUE.equals(includeUnavailable)
         );

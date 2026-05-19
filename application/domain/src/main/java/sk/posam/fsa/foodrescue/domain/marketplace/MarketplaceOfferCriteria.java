@@ -6,12 +6,13 @@ public record MarketplaceOfferCriteria(
         String query,
         Double viewerLatitude,
         Double viewerLongitude,
+        Integer radiusKm,
         MarketplaceOfferSort sort,
         boolean includeUnavailable
 ) {
 
     public static MarketplaceOfferCriteria defaultCriteria() {
-        return new MarketplaceOfferCriteria(null, null, null, MarketplaceOfferSort.DISTANCE, false);
+        return new MarketplaceOfferCriteria(null, null, null, null, MarketplaceOfferSort.DISTANCE, false);
     }
 
     public MarketplaceOfferCriteria normalize() {
@@ -24,6 +25,7 @@ public record MarketplaceOfferCriteria(
                 normalizedQuery,
                 viewerLatitude,
                 viewerLongitude,
+                radiusKm == null || radiusKm < 1 ? null : radiusKm,
                 sort == null ? MarketplaceOfferSort.DISTANCE : sort,
                 includeUnavailable
         );

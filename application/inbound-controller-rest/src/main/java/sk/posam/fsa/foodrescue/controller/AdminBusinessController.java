@@ -1,23 +1,18 @@
 package sk.posam.fsa.foodrescue.controller;
 
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import sk.posam.fsa.foodrescue.domain.business.Business;
-import sk.posam.fsa.foodrescue.domain.user.User;
 import sk.posam.fsa.foodrescue.domain.business.BusinessFacade;
+import sk.posam.fsa.foodrescue.domain.user.User;
 import sk.posam.fsa.foodrescue.mapper.BusinessMapper;
+import sk.posam.fsa.foodrescue.rest.api.AdminApi;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessResponseDto;
 import sk.posam.fsa.foodrescue.security.CurrentUserDetailService;
 
 import java.util.List;
 
 @RestController
-@RequestMapping("/admin/businesses")
-public class AdminBusinessController {
+public class AdminBusinessController implements AdminApi {
 
     private final BusinessFacade businessFacade;
     private final BusinessMapper businessMapper;
@@ -31,20 +26,15 @@ public class AdminBusinessController {
         this.currentUserDetailService = currentUserDetailService;
     }
 
-    @GetMapping("/pending")
-    public ResponseEntity<List<BusinessResponseDto>> getPendingBusinesses() {
+    @Override
+    public ResponseEntity<List<BusinessResponseDto>> getPendingBusinessesForApproval() {
         User user = currentUserDetailService.getFullCurrentUser();
-        List<BusinessResponseDto> businesses = businessFacade.getPendingBusinesses(user).stream()
-                .map(businessMapper::toDto)
-                .toList();
-        return ResponseEntity.ok(businesses);
+        return ResponseEntity.ok(businessMapper.toDtos(businessFacade.getPendingBusinesses(user)));
     }
 
-    @PostMapping("/{id}/approve")
-    public ResponseEntity<BusinessResponseDto> approveBusiness(@PathVariable Long id) {
+    @Override
+    public ResponseEntity<BusinessResponseDto> approveBusiness(Long id) {
         User user = currentUserDetailService.getFullCurrentUser();
-        Business approvedBusiness = businessFacade.approve(user, id);
-        return ResponseEntity.ok(businessMapper.toDto(approvedBusiness));
+        return ResponseEntity.ok(businessMapper.toDto(businessFacade.approve(user, id)));
     }
 }
-

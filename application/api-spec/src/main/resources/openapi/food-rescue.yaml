@@ -10,6 +10,8 @@ servers:
   - url: http://localhost:8080
 
 tags:
+  - name: Auth
+    description: Public authentication token exchange endpoint backed by Keycloak
   - name: User
     description: User management endpoints
   - name: Business
@@ -34,6 +36,75 @@ tags:
     description: Notification inbox endpoints for authenticated users
 
 paths:
+  /auth/token:
+    post:
+      tags:
+        - Auth
+      summary: Exchange an authentication token
+      description: |
+        Exchanges a supported OAuth2/OpenID Connect grant against the backend auth bridge.
+        The backend forwards the validated request to Keycloak while keeping client credentials private.
+
+        Supported grant types:
+          - `password`
+          - `refresh_token`
+          - `authorization_code`
+
+        Required form fields depend on `grant_type` and follow the same combinations as the current runtime behavior.
+      operationId: exchangeToken
+      requestBody:
+        required: true
+        description: Form-encoded token exchange request
+        content:
+          application/x-www-form-urlencoded:
+            schema:
+              $ref: '#/components/schemas/AuthTokenExchangeRequest'
+            examples:
+              passwordGrant:
+                summary: Password grant exchange
+                value:
+                  grant_type: password
+                  username: jana.novakova@posam.sk
+                  password: user123
+                  scope: openid profile email offline_access
+              refreshTokenGrant:
+                summary: Refresh token exchange
+                value:
+                  grant_type: refresh_token
+                  refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh
+              authorizationCodeGrant:
+                summary: Authorization code exchange
+                value:
+                  grant_type: authorization_code
+                  code: 4f4e0b19-4a2f-4d43-9cc6-8f17f5b5eb6d
+                  redirect_uri: http://localhost:4200/auth/callback
+                  code_verifier: pkce-code-verifier
+                  scope: openid profile email offline_access
+      responses:
+        '200':
+          description: Token exchange completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/AuthTokenExchangeResponse'
+              examples:
+                success:
+                  value:
+                    access_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.access
+                    expires_in: 300
+                    refresh_expires_in: 1800
+                    refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh
+                    token_type: Bearer
+                    id_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.id
+                    not-before-policy: 0
+                    session_state: 3e9f5f8b-2b27-4f1a-8f35-0edfd859f8b6
+                    scope: openid profile email offline_access
+        '400':
+          $ref: '#/components/responses/BadRequestResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
   /users:
     post:
       tags:
@@ -726,6 +797,7 @@ paths:
         - $ref: '#/components/parameters/MarketplaceQueryParam'
         - $ref: '#/components/parameters/MarketplaceViewerLatitudeParam'
         - $ref: '#/components/parameters/MarketplaceViewerLongitudeParam'
+        - $ref: '#/components/parameters/MarketplaceRadiusKmParam'
         - $ref: '#/components/parameters/MarketplaceSortParam'
         - $ref: '#/components/parameters/MarketplaceIncludeUnavailableParam'
       responses:
@@ -1622,6 +1694,17 @@ components:
         maximum: 180
       example: 21.2578
 
+    MarketplaceRadiusKmParam:
+      name: radiusKm
+      in: query
+      required: false
+      description: Optional radius in kilometers used to limit offers around the viewer's location
+      schema:
+        type: integer
+        format: int32
+        minimum: 1
+      example: 30
+
     MarketplaceSortParam:
       name: sort
       in: query
@@ -1723,6 +1806,97 @@ components:
                 path: /businesses
 
   schemas:
+    AuthTokenExchangeRequest:
+      type: object
+      required:
+        - grant_type
+      properties:
+        grant_type:
+          type: string
+          enum:
+            - password
+            - refresh_token
+            - authorization_code
+          example: authorization_code
+        username:
+          type: string
+          nullable: true
+          description: Required when grant_type is `password`
+          example: jana.novakova@posam.sk
+        password:
+          type: string
+          format: password
+          nullable: true
+          description: Required when grant_type is `password`
+          example: user123
+        refresh_token:
+          type: string
+          nullable: true
+          description: Required when grant_type is `refresh_token`
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh
+        code:
+          type: string
+          nullable: true
+          description: Required when grant_type is `authorization_code`
+          example: 4f4e0b19-4a2f-4d43-9cc6-8f17f5b5eb6d
+        redirect_uri:
+          type: string
+          nullable: true
+          description: Required when grant_type is `authorization_code`
+          example: http://localhost:4200/auth/callback
+        code_verifier:
+          type: string
+          nullable: true
+          description: Optional PKCE verifier for authorization code flow
+          example: pkce-code-verifier
+        scope:
+          type: string
+          nullable: true
+          description: Optional scope override. Defaults to `openid profile email offline_access`.
+          example: openid profile email offline_access
+
+    AuthTokenExchangeResponse:
+      type: object
+      additionalProperties: true
+      required:
+        - access_token
+        - expires_in
+        - refresh_expires_in
+        - refresh_token
+        - token_type
+      properties:
+        access_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.access
+        expires_in:
+          type: integer
+          example: 300
+        refresh_expires_in:
+          type: integer
+          example: 1800
+        refresh_token:
+          type: string
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.refresh
+        token_type:
+          type: string
+          example: Bearer
+        id_token:
+          type: string
+          nullable: true
+          example: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.id
+        not-before-policy:
+          type: integer
+          nullable: true
+          example: 0
+        session_state:
+          type: string
+          nullable: true
+          example: 3e9f5f8b-2b27-4f1a-8f35-0edfd859f8b6
+        scope:
+          type: string
+          nullable: true
+          example: openid profile email offline_access
+
     CreateUserRequest:
       type: object
       required:

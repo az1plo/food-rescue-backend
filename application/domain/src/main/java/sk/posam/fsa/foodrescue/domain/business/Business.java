@@ -132,7 +132,7 @@ public class Business {
     }
 
     public boolean canBeManagedBy(User user) {
-        return user != null && (belongsTo(user) || user.isAdmin());
+        return belongsTo(user);
     }
 
     public boolean canPublishOffers() {

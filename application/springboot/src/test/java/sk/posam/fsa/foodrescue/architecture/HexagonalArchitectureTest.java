@@ -21,9 +21,24 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.noClasses;
 
 class HexagonalArchitectureTest {
 
+    private static final String RUNTIME_ROOT_PACKAGE = "sk.posam.fsa.foodrescue";
+    private static final String[] INBOUND_PACKAGES = {
+            "sk.posam.fsa.foodrescue.controller..",
+            "sk.posam.fsa.foodrescue.mapper..",
+            "sk.posam.fsa.foodrescue.security.."
+    };
+    private static final String[] OUTBOUND_PACKAGES = {
+            "sk.posam.fsa.foodrescue.jpa..",
+            "sk.posam.fsa.foodrescue.keycloak..",
+            "sk.posam.fsa.foodrescue.nominatim..",
+            "sk.posam.fsa.foodrescue.openai..",
+            "sk.posam.fsa.foodrescue.offermedia..",
+            "sk.posam.fsa.foodrescue.supportstub.."
+    };
+
     private static final JavaClasses CLASSES = new ClassFileImporter()
             .withImportOption(ImportOption.Predefined.DO_NOT_INCLUDE_TESTS)
-            .importPackages("sk.posam.fsa.foodrescue");
+            .importPackages(RUNTIME_ROOT_PACKAGE);
 
     @Test
     void domain_must_not_depend_on_frameworks_or_adapters() {
@@ -34,11 +49,17 @@ class HexagonalArchitectureTest {
                         "org.springframework..",
                         "jakarta.persistence..",
                         "org.hibernate..",
-                        "sk.posam.fsa.foodrescue.controller..",
-                        "sk.posam.fsa.foodrescue.mapper..",
-                        "sk.posam.fsa.foodrescue.security..",
-                        "sk.posam.fsa.foodrescue.jpa..",
-                        "sk.posam.fsa.foodrescue")
+                        INBOUND_PACKAGES[0],
+                        INBOUND_PACKAGES[1],
+                        INBOUND_PACKAGES[2],
+                        OUTBOUND_PACKAGES[0],
+                        OUTBOUND_PACKAGES[1],
+                        OUTBOUND_PACKAGES[2],
+                        OUTBOUND_PACKAGES[3],
+                        OUTBOUND_PACKAGES[4],
+                        OUTBOUND_PACKAGES[5],
+                        "sk.posam.fsa.foodrescue.rest..",
+                        RUNTIME_ROOT_PACKAGE)
                 .because("domain must stay technologically agnostic");
 
         rule.check(CLASSES);
@@ -48,13 +69,18 @@ class HexagonalArchitectureTest {
     void inbound_layer_must_not_depend_on_outbound_adapter_or_runtime() {
         ArchRule rule = noClasses()
                 .that().resideInAnyPackage(
-                        "sk.posam.fsa.foodrescue.controller..",
-                        "sk.posam.fsa.foodrescue.mapper..",
-                        "sk.posam.fsa.foodrescue.security..")
+                        INBOUND_PACKAGES[0],
+                        INBOUND_PACKAGES[1],
+                        INBOUND_PACKAGES[2])
                 .should().dependOnClassesThat()
                 .resideInAnyPackage(
-                        "sk.posam.fsa.foodrescue.jpa..",
-                        "sk.posam.fsa.foodrescue")
+                        OUTBOUND_PACKAGES[0],
+                        OUTBOUND_PACKAGES[1],
+                        OUTBOUND_PACKAGES[2],
+                        OUTBOUND_PACKAGES[3],
+                        OUTBOUND_PACKAGES[4],
+                        OUTBOUND_PACKAGES[5],
+                        RUNTIME_ROOT_PACKAGE)
                 .because("REST inbound must delegate to domain, not to outbound or runtime");
 
         rule.check(CLASSES);
@@ -63,20 +89,15 @@ class HexagonalArchitectureTest {
     @Test
     void outbound_layer_must_not_depend_on_inbound_api_contract_or_runtime() {
         ArchRule rule = noClasses()
-                .that().resideInAPackage("sk.posam.fsa.foodrescue.jpa..")
-                .or().resideInAPackage("sk.posam.fsa.foodrescue.keycloak..")
-                .or().resideInAPackage("sk.posam.fsa.foodrescue.nominatim..")
-                .or().resideInAPackage("sk.posam.fsa.foodrescue.openai..")
-                .or().resideInAPackage("sk.posam.fsa.foodrescue.offermedia..")
-                .or().resideInAPackage("sk.posam.fsa.foodrescue.supportstub..")
+                .that().resideInAnyPackage(OUTBOUND_PACKAGES)
                 .should().dependOnClassesThat()
                 .resideInAnyPackage(
-                        "sk.posam.fsa.foodrescue.controller..",
-                        "sk.posam.fsa.foodrescue.mapper..",
-                        "sk.posam.fsa.foodrescue.security..",
+                        INBOUND_PACKAGES[0],
+                        INBOUND_PACKAGES[1],
+                        INBOUND_PACKAGES[2],
                         "sk.posam.fsa.foodrescue.rest..",
-                        "sk.posam.fsa.foodrescue")
-                .because("JPA adapters must stay technical and not know inbound/runtime details");
+                        RUNTIME_ROOT_PACKAGE)
+                .because("outbound adapters must stay technical and not know inbound/runtime details");
 
         rule.check(CLASSES);
     }
@@ -84,7 +105,7 @@ class HexagonalArchitectureTest {
     @Test
     void runtime_root_package_must_only_contain_application_and_configuration_classes() {
         ArchRule rule = classes()
-                .that().resideInAPackage("sk.posam.fsa.foodrescue")
+                .that().resideInAPackage(RUNTIME_ROOT_PACKAGE)
                 .should().beAnnotatedWith(org.springframework.context.annotation.Configuration.class)
                 .orShould().beAnnotatedWith(SpringBootApplication.class)
                 .because("runtime root package must contain only bootstrapping and bean configurations");

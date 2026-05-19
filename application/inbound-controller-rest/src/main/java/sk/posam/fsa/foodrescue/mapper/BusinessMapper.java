@@ -7,6 +7,8 @@ import sk.posam.fsa.foodrescue.rest.dto.BusinessStatusDto;
 import sk.posam.fsa.foodrescue.rest.dto.CreateBusinessRequestDto;
 import sk.posam.fsa.foodrescue.rest.dto.UpdateBusinessRequestDto;
 
+import java.util.List;
+
 @Component
 public class BusinessMapper {
 
@@ -41,6 +43,12 @@ public class BusinessMapper {
                         : null
         );
         return dto;
+    }
+
+    public List<BusinessResponseDto> toDtos(List<Business> entities) {
+        return entities == null ? List.of() : entities.stream()
+                .map(this::toDto)
+                .toList();
     }
 
     public Business toEntity(CreateBusinessRequestDto dto) {

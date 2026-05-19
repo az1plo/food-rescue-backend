@@ -72,6 +72,7 @@ public class MarketplaceService implements MarketplaceFacade {
                         countsByBusinessId,
                         resolvedCriteria.viewerLatitude(),
                         resolvedCriteria.viewerLongitude()))
+                .filter(offer -> isWithinRadius(offer, resolvedCriteria.radiusKm()))
                 .sorted(comparatorFor(resolvedCriteria.sort()))
                 .toList();
     }
@@ -258,6 +259,15 @@ public class MarketplaceService implements MarketplaceFacade {
                     ))
                     .thenComparing(MarketplaceOfferView::title, String.CASE_INSENSITIVE_ORDER);
         };
+    }
+
+    private boolean isWithinRadius(MarketplaceOfferView offer, Integer radiusKm) {
+        if (radiusKm == null) {
+            return true;
+        }
+
+        Double distanceMeters = offer.distanceMeters();
+        return distanceMeters != null && distanceMeters <= radiusKm * 1000.0;
     }
 
     private Double resolveDistanceMeters(Double viewerLatitude, Double viewerLongitude, Address address) {
