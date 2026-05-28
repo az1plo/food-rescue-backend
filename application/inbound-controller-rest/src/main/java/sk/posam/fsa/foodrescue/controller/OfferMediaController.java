@@ -2,6 +2,7 @@ package sk.posam.fsa.foodrescue.controller;
 
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
@@ -15,6 +16,8 @@ import sk.posam.fsa.foodrescue.rest.api.OfferImagesApi;
 import sk.posam.fsa.foodrescue.rest.dto.OfferImageUploadRequestDto;
 import sk.posam.fsa.foodrescue.rest.dto.OfferImageUploadResponseDto;
 import sk.posam.fsa.foodrescue.security.CurrentUserDetailService;
+
+import java.util.concurrent.TimeUnit;
 
 @RestController
 public class OfferMediaController implements OfferImagesApi {
@@ -49,7 +52,9 @@ public class OfferMediaController implements OfferImagesApi {
         StoredOfferImageContent image = offerAssistantFacade.getOfferImage(id);
         MediaType mediaType = MediaType.parseMediaType(image.contentType());
         return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic().immutable())
                 .contentType(mediaType)
+                .contentLength(image.bytes().length)
                 .body(new ByteArrayResource(image.bytes()));
     }
 }

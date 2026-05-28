@@ -11,6 +11,10 @@ public interface OfferRepository {
 
     Optional<Offer> findById(Long id);
 
+    default Optional<Offer> findByIdForUpdate(Long id) {
+        return findById(id);
+    }
+
     List<Offer> findAll();
 
     List<Offer> findAllByBusinessId(Long businessId);

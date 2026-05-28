@@ -23,11 +23,11 @@ management:
     health:
       probes:
         enabled: true
-      show-details: always
+      show-details: when_authorized
   endpoints:
     web:
       exposure:
-        include: "*"
+        include: "health,prometheus"
 
 food-rescue:
   offer-assistant:

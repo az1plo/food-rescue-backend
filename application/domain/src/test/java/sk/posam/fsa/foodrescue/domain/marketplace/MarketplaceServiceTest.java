@@ -64,7 +64,6 @@ class MarketplaceServiceTest {
 
         when(offerRepository.findAll()).thenReturn(List.of(offer));
         when(businessRepository.findAll()).thenReturn(List.of(business));
-        when(reviewRepository.findAllByBusinessIds(List.of(business.getId()))).thenReturn(List.of());
 
         MarketplaceService service = new MarketplaceService(offerRepository, businessRepository, reviewRepository);
 
@@ -82,7 +81,6 @@ class MarketplaceServiceTest {
 
         when(offerRepository.findAll()).thenReturn(List.of(offer));
         when(businessRepository.findAll()).thenReturn(List.of(business));
-        when(reviewRepository.findAllByBusinessIds(List.of(business.getId()))).thenReturn(List.of());
 
         MarketplaceService service = new MarketplaceService(offerRepository, businessRepository, reviewRepository);
 
@@ -93,6 +91,31 @@ class MarketplaceServiceTest {
                 1,
                 MarketplaceOfferSort.DISTANCE,
                 false
+        );
+
+        List<MarketplaceOfferView> offers = service.findOffers(currentUser, criteria);
+
+        assertTrue(offers.isEmpty());
+    }
+
+    @Test
+    void excludesCancelledOffersFromMarketplaceEvenWhenUnavailableOffersAreRequested() {
+        Business business = activeBusiness(7L, 3L);
+        Offer offer = cancelledEndedOffer(business);
+        User currentUser = activeUser(99L);
+
+        when(offerRepository.findAll()).thenReturn(List.of(offer));
+        when(businessRepository.findAll()).thenReturn(List.of(business));
+
+        MarketplaceService service = new MarketplaceService(offerRepository, businessRepository, reviewRepository);
+
+        MarketplaceOfferCriteria criteria = new MarketplaceOfferCriteria(
+                null,
+                null,
+                null,
+                null,
+                MarketplaceOfferSort.DISTANCE,
+                true
         );
 
         List<MarketplaceOfferView> offers = service.findOffers(currentUser, criteria);
@@ -136,6 +159,34 @@ class MarketplaceServiceTest {
         offer.setId(101L);
         offer.prepareForCreation();
         offer.publish(business);
+        return offer;
+    }
+
+    private Offer cancelledEndedOffer(Business business) {
+        Offer offer = Offer.fromDraft(
+                business.getId(),
+                "Ended rescue bag",
+                "This offer was deleted after its pickup window ended",
+                null,
+                OfferCategory.BAKERY,
+                false,
+                List.of(),
+                List.of(),
+                null,
+                new BigDecimal("4.90"),
+                null,
+                4,
+                List.of(OfferItem.of("Croissant", 2)),
+                PickupLocation.of(new Address("Hlavna 10", "Kosice", "04011", "Slovakia", 48.7260, 21.2580), null),
+                PickupTimeWindow.of(
+                        LocalDateTime.now().minusHours(3),
+                        LocalDateTime.now().minusHours(1)
+                )
+        );
+        offer.setId(102L);
+        offer.prepareForCreation();
+        offer.publish(business);
+        offer.cancel();
         return offer;
     }
 

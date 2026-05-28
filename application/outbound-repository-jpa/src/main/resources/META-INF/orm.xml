@@ -288,6 +288,21 @@
                     <column name="pickup_time_to"/>
                 </attribute-override>
             </embedded>
+            <basic name="autoRepeatEnabled">
+                <column name="auto_repeat_enabled"/>
+            </basic>
+            <basic name="autoRepeatQuantity">
+                <column name="auto_repeat_quantity"/>
+            </basic>
+            <basic name="autoRepeatPickupStartTime">
+                <column name="auto_repeat_pickup_start_time"/>
+            </basic>
+            <basic name="autoRepeatPickupEndTime">
+                <column name="auto_repeat_pickup_end_time"/>
+            </basic>
+            <basic name="recurrenceKey">
+                <column name="recurrence_key"/>
+            </basic>
             <basic name="createdAt">
                 <column name="created_at"/>
             </basic>

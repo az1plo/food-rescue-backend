@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<databaseChangeLog xmlns="http://www.liquibase.org/xml/ns/dbchangelog"
+                   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+                   xsi:schemaLocation="http://www.liquibase.org/xml/ns/dbchangelog
+                                       https://www.liquibase.org/xml/ns/dbchangelog/dbchangelog-latest.xsd">
+    <changeSet id="offer-auto-repeat-001-add-repeat-columns" author="savr">
+        <preConditions onFail="MARK_RAN">
+            <tableExists tableName="offer"/>
+            <not>
+                <columnExists tableName="offer" columnName="auto_repeat_enabled"/>
+            </not>
+        </preConditions>
+
+        <addColumn tableName="offer">
+            <column name="auto_repeat_enabled" type="BOOLEAN" defaultValueBoolean="false">
+                <constraints nullable="false"/>
+            </column>
+            <column name="auto_repeat_quantity" type="INT"/>
+            <column name="auto_repeat_pickup_start_time" type="TIME"/>
+            <column name="auto_repeat_pickup_end_time" type="TIME"/>
+            <column name="recurrence_key" type="VARCHAR(64)"/>
+        </addColumn>
+
+        <createIndex tableName="offer" indexName="idx_offer_recurrence_key">
+            <column name="recurrence_key"/>
+        </createIndex>
+    </changeSet>
+</databaseChangeLog>

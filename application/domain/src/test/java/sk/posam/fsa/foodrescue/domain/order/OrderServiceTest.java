@@ -177,7 +177,7 @@ class OrderServiceTest {
         Offer offer = activeOffer(business);
         User currentUser = activeUser(3L);
 
-        when(offerRepository.findById(offer.getId())).thenReturn(Optional.of(offer));
+        when(offerRepository.findByIdForUpdate(offer.getId())).thenReturn(Optional.of(offer));
         when(businessRepository.findById(business.getId())).thenReturn(Optional.of(business));
 
         OrderService service = new OrderService(
@@ -195,6 +195,35 @@ class OrderServiceTest {
 
         assertEquals(FoodRescueException.Type.FORBIDDEN, exception.getType());
         assertTrue(exception.getMessage().contains("own business"));
+    }
+
+    @Test
+    void createRejectsExpiredOfferEvenWhenAvailabilityStatusWasNotSettledYet() {
+        Business business = activeBusiness(7L, 8L);
+        Offer offer = expiredAvailableOffer(business);
+        User currentUser = activeUser(3L);
+
+        when(offerRepository.findByIdForUpdate(offer.getId())).thenReturn(Optional.of(offer));
+        when(offerRepository.save(any(Offer.class))).thenAnswer(invocation -> invocation.getArgument(0));
+        when(businessRepository.findById(business.getId())).thenReturn(Optional.of(business));
+
+        OrderService service = new OrderService(
+                orderRepository,
+                offerRepository,
+                businessRepository,
+                notificationRepository,
+                reviewRepository
+        );
+
+        FoodRescueException exception = assertThrows(
+                FoodRescueException.class,
+                () -> service.create(currentUser, offer.getId(), 1, "Savr Customer", "1234")
+        );
+
+        assertEquals(FoodRescueException.Type.CONFLICT, exception.getType());
+        assertTrue(exception.getMessage().contains("no longer available"));
+        assertEquals(OfferStatus.EXPIRED, offer.getStatus());
+        verify(offerRepository).save(offer);
     }
 
     @Test
@@ -259,6 +288,34 @@ class OrderServiceTest {
                 )
         );
         offer.setId(101L);
+        offer.prepareForCreation();
+        offer.publish(business);
+        offer.setStatus(OfferStatus.AVAILABLE);
+        return offer;
+    }
+
+    private Offer expiredAvailableOffer(Business business) {
+        Offer offer = Offer.fromDraft(
+                business.getId(),
+                "Late Rescue Bag",
+                "This pickup window has already ended",
+                null,
+                OfferCategory.BAKERY,
+                false,
+                List.of(),
+                List.of(),
+                null,
+                new BigDecimal("3.00"),
+                null,
+                2,
+                List.of(OfferItem.of("Bread", 1)),
+                PickupLocation.of(new Address("Hlavna 10", "Kosice", "04011", "Slovakia"), null),
+                PickupTimeWindow.of(
+                        LocalDateTime.now().minusHours(3),
+                        LocalDateTime.now().minusHours(1)
+                )
+        );
+        offer.setId(102L);
         offer.prepareForCreation();
         offer.publish(business);
         offer.setStatus(OfferStatus.AVAILABLE);

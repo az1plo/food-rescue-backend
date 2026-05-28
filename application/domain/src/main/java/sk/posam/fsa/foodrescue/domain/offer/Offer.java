@@ -5,10 +5,13 @@ import sk.posam.fsa.foodrescue.domain.shared.Address;
 import sk.posam.fsa.foodrescue.domain.shared.ValidationException;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.LocalTime;
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.UUID;
 
 public class Offer {
 
@@ -29,6 +32,11 @@ public class Offer {
     private List<OfferItem> items = new ArrayList<>();
     private PickupLocation pickupLocation;
     private PickupTimeWindow pickupTimeWindow;
+    private boolean autoRepeatEnabled;
+    private Integer autoRepeatQuantity;
+    private LocalTime autoRepeatPickupStartTime;
+    private LocalTime autoRepeatPickupEndTime;
+    private String recurrenceKey;
     private LocalDateTime createdAt;
 
     public Offer() {
@@ -49,6 +57,50 @@ public class Offer {
                                   List<OfferItem> items,
                                   PickupLocation pickupLocation,
                                   PickupTimeWindow pickupTimeWindow) {
+        return fromDraft(
+                businessId,
+                title,
+                description,
+                imageUrl,
+                category,
+                illustrativeImage,
+                containsAllergens,
+                mayContainAllergens,
+                otherAllergenNote,
+                price,
+                originalPrice,
+                quantityAvailable,
+                items,
+                pickupLocation,
+                pickupTimeWindow,
+                false,
+                null,
+                null,
+                null,
+                null
+        );
+    }
+
+    public static Offer fromDraft(Long businessId,
+                                  String title,
+                                  String description,
+                                  String imageUrl,
+                                  OfferCategory category,
+                                  boolean illustrativeImage,
+                                  List<AllergenCode> containsAllergens,
+                                  List<AllergenCode> mayContainAllergens,
+                                  String otherAllergenNote,
+                                  BigDecimal price,
+                                  BigDecimal originalPrice,
+                                  Integer quantityAvailable,
+                                  List<OfferItem> items,
+                                  PickupLocation pickupLocation,
+                                  PickupTimeWindow pickupTimeWindow,
+                                  boolean autoRepeatEnabled,
+                                  String recurrenceKey,
+                                  Integer autoRepeatQuantity,
+                                  LocalTime autoRepeatPickupStartTime,
+                                  LocalTime autoRepeatPickupEndTime) {
         Offer offer = new Offer();
         offer.businessId = businessId;
         offer.title = title;
@@ -65,6 +117,11 @@ public class Offer {
         offer.items = copyItems(items);
         offer.pickupLocation = copyPickupLocation(pickupLocation);
         offer.pickupTimeWindow = copyPickupTimeWindow(pickupTimeWindow);
+        offer.autoRepeatEnabled = autoRepeatEnabled;
+        offer.recurrenceKey = normalizeRecurrenceKey(recurrenceKey);
+        offer.autoRepeatQuantity = autoRepeatQuantity;
+        offer.autoRepeatPickupStartTime = autoRepeatPickupStartTime;
+        offer.autoRepeatPickupEndTime = autoRepeatPickupEndTime;
         return offer;
     }
 
@@ -142,6 +199,26 @@ public class Offer {
         return createdAt;
     }
 
+    public boolean isAutoRepeatEnabled() {
+        return autoRepeatEnabled;
+    }
+
+    public Integer getAutoRepeatQuantity() {
+        return autoRepeatQuantity;
+    }
+
+    public LocalTime getAutoRepeatPickupStartTime() {
+        return autoRepeatPickupStartTime;
+    }
+
+    public LocalTime getAutoRepeatPickupEndTime() {
+        return autoRepeatPickupEndTime;
+    }
+
+    public String getRecurrenceKey() {
+        return recurrenceKey;
+    }
+
     public void setId(Long id) {
         this.id = id;
     }
@@ -169,10 +246,6 @@ public class Offer {
         pickupLocation = PickupLocation.of(address, pickupLocation.getNote());
     }
 
-    public boolean isDraft() {
-        return status == OfferStatus.DRAFT;
-    }
-
     public boolean isAvailable() {
         return status == OfferStatus.AVAILABLE;
     }
@@ -190,7 +263,7 @@ public class Offer {
 
     public void update(Offer newData) {
         require(newData != null, "Offer update data is required");
-        require(isManagedState(), "Only draft or available offers can be updated");
+        require(isManagedState(), "Only editable offers can be updated");
 
         applyDetails(
                 newData.title,
@@ -206,8 +279,16 @@ public class Offer {
                 newData.quantityAvailable,
                 newData.items,
                 newData.pickupLocation,
-                newData.pickupTimeWindow
+                newData.pickupTimeWindow,
+                newData.autoRepeatEnabled,
+                newData.autoRepeatQuantity,
+                newData.autoRepeatPickupStartTime,
+                newData.autoRepeatPickupEndTime
         );
+
+        if (autoRepeatEnabled && recurrenceKey == null) {
+            recurrenceKey = UUID.randomUUID().toString();
+        }
     }
 
     public String normalizedTitle() {
@@ -230,11 +311,19 @@ public class Offer {
                 quantityAvailable,
                 items,
                 pickupLocation,
-                pickupTimeWindow
+                pickupTimeWindow,
+                autoRepeatEnabled,
+                autoRepeatQuantity,
+                autoRepeatPickupStartTime,
+                autoRepeatPickupEndTime
         );
 
-        if (status == null) {
-            status = OfferStatus.DRAFT;
+        if (status == null || status == OfferStatus.DRAFT) {
+            status = OfferStatus.AVAILABLE;
+        }
+
+        if (recurrenceKey == null && autoRepeatEnabled) {
+            recurrenceKey = UUID.randomUUID().toString();
         }
 
         if (createdAt == null) {
@@ -245,7 +334,7 @@ public class Offer {
     public void publish(Business business) {
         require(belongsTo(business), "Offer must belong to the selected business");
         require(business.canPublishOffers(), "Only active businesses can publish offers");
-        require(status == OfferStatus.DRAFT, "Only draft offers can be published");
+        require(isManagedState(), "Only editable offers can be published");
 
         status = OfferStatus.AVAILABLE;
     }
@@ -301,6 +390,49 @@ public class Offer {
         status = OfferStatus.CANCELLED;
     }
 
+    public Offer createRepeatedOccurrenceFor(LocalDate occurrenceDate) {
+        require(occurrenceDate != null, "Recurring offer date is required");
+        require(recurrenceKey != null, "Recurring offer key is required");
+
+        LocalTime pickupStartTime = autoRepeatPickupStartTime != null
+                ? autoRepeatPickupStartTime
+                : pickupTimeWindow.getFrom().toLocalTime();
+        LocalTime pickupEndTime = autoRepeatPickupEndTime != null
+                ? autoRepeatPickupEndTime
+                : pickupTimeWindow.getTo().toLocalTime();
+        LocalDateTime nextPickupFrom = LocalDateTime.of(occurrenceDate, pickupStartTime);
+        LocalDateTime nextPickupTo = LocalDateTime.of(occurrenceDate, pickupEndTime);
+
+        if (!nextPickupTo.isAfter(nextPickupFrom)) {
+            nextPickupTo = nextPickupTo.plusDays(1);
+        }
+
+        Offer repeatedOffer = Offer.fromDraft(
+                businessId,
+                title,
+                description,
+                imageUrl,
+                category,
+                illustrativeImage,
+                containsAllergens,
+                mayContainAllergens,
+                otherAllergenNote,
+                price,
+                originalPrice,
+                autoRepeatQuantity != null ? autoRepeatQuantity : quantityAvailable,
+                items,
+                pickupLocation,
+                PickupTimeWindow.of(nextPickupFrom, nextPickupTo),
+                autoRepeatEnabled,
+                recurrenceKey,
+                autoRepeatQuantity,
+                pickupStartTime,
+                pickupEndTime
+        );
+        repeatedOffer.prepareForCreation();
+        return repeatedOffer;
+    }
+
     private void applyDetails(String title,
                               String description,
                               String imageUrl,
@@ -314,7 +446,11 @@ public class Offer {
                               Integer quantityAvailable,
                               List<OfferItem> items,
                               PickupLocation pickupLocation,
-                              PickupTimeWindow pickupTimeWindow) {
+                              PickupTimeWindow pickupTimeWindow,
+                              boolean autoRepeatEnabled,
+                              Integer autoRepeatQuantity,
+                              LocalTime autoRepeatPickupStartTime,
+                              LocalTime autoRepeatPickupEndTime) {
         this.title = normalizeTitle(title);
         this.description = normalizeDescription(description);
         this.imageUrl = normalizeImageUrl(imageUrl);
@@ -330,6 +466,10 @@ public class Offer {
         this.items = normalizeItems(items);
         this.pickupLocation = normalizePickupLocation(pickupLocation);
         this.pickupTimeWindow = normalizePickupTimeWindow(pickupTimeWindow);
+        this.autoRepeatEnabled = autoRepeatEnabled;
+        this.autoRepeatQuantity = normalizeAutoRepeatQuantity(autoRepeatQuantity, this.quantityAvailable);
+        this.autoRepeatPickupStartTime = normalizeAutoRepeatTime(autoRepeatPickupStartTime, this.pickupTimeWindow.getFrom().toLocalTime());
+        this.autoRepeatPickupEndTime = normalizeAutoRepeatTime(autoRepeatPickupEndTime, this.pickupTimeWindow.getTo().toLocalTime());
     }
 
     private String normalizeTitle(String title) {
@@ -455,6 +595,18 @@ public class Offer {
         return normalizedPickupTimeWindow;
     }
 
+    private Integer normalizeAutoRepeatQuantity(Integer autoRepeatQuantity, Integer fallbackQuantity) {
+        Integer normalizedQuantity = autoRepeatQuantity == null ? fallbackQuantity : autoRepeatQuantity;
+        require(normalizedQuantity != null && normalizedQuantity > 0, "Auto-repeat quantity must be greater than zero");
+        return normalizedQuantity;
+    }
+
+    private LocalTime normalizeAutoRepeatTime(LocalTime autoRepeatTime, LocalTime fallbackTime) {
+        LocalTime normalizedTime = autoRepeatTime == null ? fallbackTime : autoRepeatTime;
+        require(normalizedTime != null, "Auto-repeat pickup time is required");
+        return normalizedTime;
+    }
+
     private static List<OfferItem> copyItems(List<OfferItem> items) {
         if (items == null) {
             return new ArrayList<>();
@@ -479,6 +631,15 @@ public class Offer {
 
     private static PickupTimeWindow copyPickupTimeWindow(PickupTimeWindow pickupTimeWindow) {
         return pickupTimeWindow == null ? null : pickupTimeWindow.copy();
+    }
+
+    private static String normalizeRecurrenceKey(String recurrenceKey) {
+        if (recurrenceKey == null) {
+            return null;
+        }
+
+        String normalizedRecurrenceKey = recurrenceKey.trim();
+        return normalizedRecurrenceKey.isBlank() ? null : normalizedRecurrenceKey;
     }
 
     private void require(boolean valid, String message) {

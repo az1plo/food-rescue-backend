@@ -87,15 +87,28 @@ public class MarketplaceService implements MarketplaceFacade {
     }
 
     private OfferStatus resolveMarketplaceStatus(Offer offer) {
+        if (offer.getStatus() == OfferStatus.DRAFT
+                || offer.getStatus() == OfferStatus.PICKED_UP
+                || offer.getStatus() == OfferStatus.CANCELLED) {
+            return offer.getStatus();
+        }
+
         if (offer.getPickupTimeWindow() != null && offer.getPickupTimeWindow().hasEnded(LocalDateTime.now())) {
             return OfferStatus.EXPIRED;
         }
 
-        if (offer.getStatus() == OfferStatus.SOLD_OUT || offer.getStatus() == OfferStatus.RESERVED || offer.getQuantityAvailable() <= 0) {
+        if (offer.getStatus() == OfferStatus.RESERVED
+                || offer.getStatus() == OfferStatus.SOLD_OUT
+                || offer.getQuantityAvailable() <= 0) {
             return OfferStatus.SOLD_OUT;
         }
 
-        return OfferStatus.AVAILABLE;
+        return switch (offer.getStatus()) {
+            case AVAILABLE -> OfferStatus.AVAILABLE;
+            case EXPIRED -> OfferStatus.EXPIRED;
+            case RESERVED, SOLD_OUT -> OfferStatus.SOLD_OUT;
+            case DRAFT, PICKED_UP, CANCELLED -> offer.getStatus();
+        };
     }
 
     private boolean matchesQuery(CatalogEntry entry, String normalizedQuery) {

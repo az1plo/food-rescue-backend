@@ -2,15 +2,15 @@ package sk.posam.fsa.foodrescue.scheduling;
 
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
-import sk.posam.fsa.foodrescue.domain.order.OrderService;
+import sk.posam.fsa.foodrescue.transactional.TransactionalOrderFacade;
 
 @Component
 public class OrderNoShowScheduler {
 
-    private final OrderService orderService;
+    private final TransactionalOrderFacade orderFacade;
 
-    public OrderNoShowScheduler(OrderService orderService) {
-        this.orderService = orderService;
+    public OrderNoShowScheduler(TransactionalOrderFacade orderFacade) {
+        this.orderFacade = orderFacade;
     }
 
     @Scheduled(
@@ -18,6 +18,6 @@ public class OrderNoShowScheduler {
             fixedDelayString = "${foodrescue.orders.no-show-delay-ms:60000}"
     )
     public void settleExpiredNoShows() {
-        orderService.settleExpiredNoShows();
+        orderFacade.settleExpiredNoShows();
     }
 }

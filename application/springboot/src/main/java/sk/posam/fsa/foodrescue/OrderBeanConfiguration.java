@@ -2,13 +2,14 @@ package sk.posam.fsa.foodrescue;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.context.annotation.Primary;
 import sk.posam.fsa.foodrescue.domain.business.BusinessRepository;
 import sk.posam.fsa.foodrescue.domain.notification.NotificationRepository;
 import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
-import sk.posam.fsa.foodrescue.domain.order.OrderFacade;
 import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
 import sk.posam.fsa.foodrescue.domain.order.OrderService;
 import sk.posam.fsa.foodrescue.domain.review.ReviewRepository;
+import sk.posam.fsa.foodrescue.transactional.TransactionalOrderFacade;
 
 @Configuration
 public class OrderBeanConfiguration {
@@ -23,7 +24,8 @@ public class OrderBeanConfiguration {
     }
 
     @Bean
-    public OrderFacade orderFacade(OrderService orderService) {
-        return orderService;
+    @Primary
+    public TransactionalOrderFacade orderFacade(OrderService orderService) {
+        return new TransactionalOrderFacade(orderService);
     }
 }

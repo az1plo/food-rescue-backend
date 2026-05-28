@@ -13,11 +13,16 @@ import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
 public class OfferBeanConfiguration {
 
     @Bean
-    public OfferFacade offerFacade(OfferRepository offerRepository,
-                                   BusinessRepository businessRepository,
-                                   OrderRepository orderRepository,
-                                   AddressCoordinatesProvider addressCoordinatesProvider) {
+    public OfferService offerService(OfferRepository offerRepository,
+                                     BusinessRepository businessRepository,
+                                     OrderRepository orderRepository,
+                                     AddressCoordinatesProvider addressCoordinatesProvider) {
         return new OfferService(offerRepository, businessRepository, orderRepository, addressCoordinatesProvider);
+    }
+
+    @Bean
+    public OfferFacade offerFacade(OfferService offerService) {
+        return offerService;
     }
 }
 

@@ -1,6 +1,8 @@
 package sk.posam.fsa.foodrescue.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.CacheControl;
+import org.springframework.http.HttpHeaders;
 import org.springframework.web.bind.annotation.RestController;
 import sk.posam.fsa.foodrescue.domain.marketplace.MarketplaceFacade;
 import sk.posam.fsa.foodrescue.domain.marketplace.MarketplaceOfferCriteria;
@@ -46,6 +48,9 @@ public class MarketplaceController implements MarketplaceApi {
         );
         User currentUser = currentUserDetailService.getOptionalCurrentUser();
         List<MarketplaceOfferView> offers = marketplaceFacade.findOffers(currentUser, criteria);
-        return ResponseEntity.ok(marketplaceOfferMapper.toDtos(offers));
+        return ResponseEntity.ok()
+                .cacheControl(CacheControl.noCache().cachePrivate())
+                .header(HttpHeaders.VARY, HttpHeaders.AUTHORIZATION)
+                .body(marketplaceOfferMapper.toDtos(offers));
     }
 }

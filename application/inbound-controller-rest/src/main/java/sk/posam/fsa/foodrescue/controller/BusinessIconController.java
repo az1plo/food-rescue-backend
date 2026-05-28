@@ -1,6 +1,7 @@
 package sk.posam.fsa.foodrescue.controller;
 
 import org.springframework.core.io.Resource;
+import org.springframework.http.CacheControl;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.RestController;
 import sk.posam.fsa.foodrescue.domain.business.BusinessFacade;
@@ -12,6 +13,8 @@ import sk.posam.fsa.foodrescue.rest.api.BusinessIconsApi;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessIconUploadRequestDto;
 import sk.posam.fsa.foodrescue.rest.dto.BusinessResponseDto;
 import sk.posam.fsa.foodrescue.security.CurrentUserDetailService;
+
+import java.util.concurrent.TimeUnit;
 
 @RestController
 public class BusinessIconController implements BusinessIconsApi {
@@ -45,7 +48,9 @@ public class BusinessIconController implements BusinessIconsApi {
     public ResponseEntity<Resource> getBusinessIcon(String id) {
         StoredBusinessIconContent image = businessFacade.getIcon(id);
         return ResponseEntity.ok()
+                .cacheControl(CacheControl.maxAge(365, TimeUnit.DAYS).cachePublic().immutable())
                 .contentType(businessIconMapper.toMediaType(image))
+                .contentLength(image.bytes().length)
                 .body(businessIconMapper.toResource(image));
     }
 }

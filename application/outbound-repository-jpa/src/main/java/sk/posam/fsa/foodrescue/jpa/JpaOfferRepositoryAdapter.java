@@ -28,6 +28,11 @@ public class JpaOfferRepositoryAdapter implements OfferRepository {
     }
 
     @Override
+    public Optional<Offer> findByIdForUpdate(Long id) {
+        return offerSpringDataRepository.findByIdForUpdate(id);
+    }
+
+    @Override
     public List<Offer> findAll() {
         return offerSpringDataRepository.findAllOrdered();
     }

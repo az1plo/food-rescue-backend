@@ -8,6 +8,7 @@ import sk.posam.fsa.foodrescue.rest.dto.OfferStatusDto;
 import sk.posam.fsa.foodrescue.rest.dto.UpdateOfferRequestDto;
 
 import java.math.BigDecimal;
+import java.time.LocalTime;
 import java.util.List;
 
 @Component
@@ -60,6 +61,10 @@ public class OfferMapper {
                 .toList());
         dto.setPickupLocation(pickupLocationMapper.toDto(entity.getPickupLocation()));
         dto.setPickupTimeWindow(pickupTimeWindowMapper.toDto(entity.getPickupTimeWindow()));
+        dto.setAutoRepeatEnabled(entity.isAutoRepeatEnabled());
+        dto.setAutoRepeatQuantity(entity.getAutoRepeatQuantity());
+        dto.setAutoRepeatPickupStartTime(toDtoTime(entity.getAutoRepeatPickupStartTime()));
+        dto.setAutoRepeatPickupEndTime(toDtoTime(entity.getAutoRepeatPickupEndTime()));
         dto.setCreatedAt(
                 entity.getCreatedAt() != null
                         ? ApiDateTimeMapper.toUtcOffsetDateTime(entity.getCreatedAt())
@@ -96,7 +101,12 @@ public class OfferMapper {
                         .map(offerItemMapper::toEntity)
                         .toList(),
                 pickupLocationMapper.toEntity(dto.getPickupLocation()),
-                pickupTimeWindowMapper.toEntity(dto.getPickupTimeWindow())
+                pickupTimeWindowMapper.toEntity(dto.getPickupTimeWindow()),
+                Boolean.TRUE.equals(dto.getAutoRepeatEnabled()),
+                null,
+                dto.getAutoRepeatQuantity(),
+                toDomainTime(dto.getAutoRepeatPickupStartTime()),
+                toDomainTime(dto.getAutoRepeatPickupEndTime())
         );
     }
 
@@ -122,7 +132,12 @@ public class OfferMapper {
                         .map(offerItemMapper::toEntity)
                         .toList(),
                 pickupLocationMapper.toEntity(dto.getPickupLocation()),
-                pickupTimeWindowMapper.toEntity(dto.getPickupTimeWindow())
+                pickupTimeWindowMapper.toEntity(dto.getPickupTimeWindow()),
+                Boolean.TRUE.equals(dto.getAutoRepeatEnabled()),
+                null,
+                dto.getAutoRepeatQuantity(),
+                toDomainTime(dto.getAutoRepeatPickupStartTime()),
+                toDomainTime(dto.getAutoRepeatPickupEndTime())
         );
     }
 
@@ -132,6 +147,14 @@ public class OfferMapper {
 
     private BigDecimal toDomainPrice(Double price) {
         return price == null ? null : BigDecimal.valueOf(price);
+    }
+
+    private String toDtoTime(LocalTime value) {
+        return value == null ? null : value.toString();
+    }
+
+    private LocalTime toDomainTime(String value) {
+        return value == null || value.isBlank() ? null : LocalTime.parse(value.trim());
     }
 }
 

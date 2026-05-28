@@ -9,3 +9,5 @@ out/
 *.log
 .tmp-domain-classes/
 .tmp-javac-check/
+.tmp-verify/
+.tmp-verify-domain/

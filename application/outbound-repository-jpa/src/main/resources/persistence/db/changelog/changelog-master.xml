@@ -8,4 +8,5 @@
     <include file="persistence/db/changelog/objects/offer_ai_metadata_changelog_2.1.xml" relativeToChangelogFile="false"/>
     <include file="persistence/db/changelog/objects/business_rating_changelog_2.2.xml" relativeToChangelogFile="false"/>
     <include file="persistence/db/changelog/objects/business_icon_changelog_2.3.xml" relativeToChangelogFile="false"/>
+    <include file="persistence/db/changelog/objects/offer_auto_repeat_changelog_2.4.xml" relativeToChangelogFile="false"/>
 </databaseChangeLog>

@@ -2347,6 +2347,23 @@ components:
           $ref: '#/components/schemas/PickupLocation'
         pickupTimeWindow:
           $ref: '#/components/schemas/PickupTimeWindow'
+        autoRepeatEnabled:
+          type: boolean
+          default: false
+          example: true
+        autoRepeatQuantity:
+          type: integer
+          nullable: true
+          minimum: 1
+          example: 3
+        autoRepeatPickupStartTime:
+          type: string
+          nullable: true
+          example: "18:00"
+        autoRepeatPickupEndTime:
+          type: string
+          nullable: true
+          example: "19:30"
 
     UpdateOfferRequest:
       type: object
@@ -2416,6 +2433,23 @@ components:
           $ref: '#/components/schemas/PickupLocation'
         pickupTimeWindow:
           $ref: '#/components/schemas/PickupTimeWindow'
+        autoRepeatEnabled:
+          type: boolean
+          default: false
+          example: true
+        autoRepeatQuantity:
+          type: integer
+          nullable: true
+          minimum: 1
+          example: 3
+        autoRepeatPickupStartTime:
+          type: string
+          nullable: true
+          example: "18:00"
+        autoRepeatPickupEndTime:
+          type: string
+          nullable: true
+          example: "19:30"
 
     OfferResponse:
       type: object
@@ -2493,6 +2527,21 @@ components:
           $ref: '#/components/schemas/PickupLocation'
         pickupTimeWindow:
           $ref: '#/components/schemas/PickupTimeWindow'
+        autoRepeatEnabled:
+          type: boolean
+          example: true
+        autoRepeatQuantity:
+          type: integer
+          nullable: true
+          example: 3
+        autoRepeatPickupStartTime:
+          type: string
+          nullable: true
+          example: "18:00"
+        autoRepeatPickupEndTime:
+          type: string
+          nullable: true
+          example: "19:30"
         createdAt:
           type: string
           format: date-time

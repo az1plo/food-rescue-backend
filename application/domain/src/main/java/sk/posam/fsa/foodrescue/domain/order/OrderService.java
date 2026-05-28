@@ -6,6 +6,7 @@ import sk.posam.fsa.foodrescue.domain.notification.Notification;
 import sk.posam.fsa.foodrescue.domain.notification.NotificationRepository;
 import sk.posam.fsa.foodrescue.domain.notification.NotificationType;
 import sk.posam.fsa.foodrescue.domain.offer.Offer;
+import sk.posam.fsa.foodrescue.domain.offer.OfferStatus;
 import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
 import sk.posam.fsa.foodrescue.domain.review.Review;
 import sk.posam.fsa.foodrescue.domain.review.ReviewRepository;
@@ -81,7 +82,8 @@ public class OrderService implements OrderFacade {
     public OrderDetailsView create(User currentUser, Long offerId, Integer quantity, String cardHolderName, String cardLast4) {
         ensureActiveUser(currentUser, "Only active users can create an order");
 
-        Offer offer = resolveOffer(offerId);
+        Offer offer = resolveOfferForUpdate(offerId);
+        offer = settleExpiredOfferIfNeeded(offer);
         Business business = resolveBusiness(offer.getBusinessId());
 
         if (!business.isActive()) {
@@ -256,6 +258,27 @@ public class OrderService implements OrderFacade {
                         FoodRescueException.Type.NOT_FOUND,
                         "Offer with id=" + id + " was not found"
                 ));
+    }
+
+    private Offer resolveOfferForUpdate(Long id) {
+        return offerRepository.findByIdForUpdate(id)
+                .orElseThrow(() -> new FoodRescueException(
+                        FoodRescueException.Type.NOT_FOUND,
+                        "Offer with id=" + id + " was not found"
+                ));
+    }
+
+    private Offer settleExpiredOfferIfNeeded(Offer offer) {
+        if (offer == null
+                || (offer.getStatus() != OfferStatus.AVAILABLE
+                && offer.getStatus() != OfferStatus.RESERVED)
+                || offer.getPickupTimeWindow() == null
+                || !offer.getPickupTimeWindow().hasEnded(LocalDateTime.now())) {
+            return offer;
+        }
+
+        offer.expire();
+        return offerRepository.save(offer);
     }
 
     private Business resolveBusiness(Long id) {
