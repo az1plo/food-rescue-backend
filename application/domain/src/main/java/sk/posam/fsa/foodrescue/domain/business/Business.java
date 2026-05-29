@@ -83,7 +83,7 @@ public class Business {
         this.status = status;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -95,7 +95,11 @@ public class Business {
         this.ratingCount = ratingCount;
     }
 
-    public void setIconUrl(String iconUrl) {
+    void setIconUrl(String iconUrl) {
+        updateIcon(iconUrl);
+    }
+
+    public void updateIcon(String iconUrl) {
         this.iconUrl = normalizeOptionalUrl(iconUrl);
     }
 

@@ -34,7 +34,7 @@ public class OfferController implements OffersApi {
     public ResponseEntity<List<OfferResponseDto>> getOffers(Long businessId) {
         List<Offer> offers = businessId == null
                 ? offerFacade.browseAvailableOffers(currentUserDetailService.getOptionalCurrentUser())
-                : offerFacade.getBusinessOffers(currentUserDetailService.getFullCurrentUser(), businessId);
+                : offerFacade.getBusinessOffers(currentUserDetailService.getOptionalCurrentUser(), businessId);
         return ResponseEntity.ok(offerMapper.toDtos(offers));
     }
 
@@ -48,7 +48,7 @@ public class OfferController implements OffersApi {
 
     @Override
     public ResponseEntity<OfferResponseDto> getOffer(Long id) {
-        User user = currentUserDetailService.getFullCurrentUser();
+        User user = currentUserDetailService.getOptionalCurrentUser();
         Offer offer = offerFacade.get(user, id);
         return ResponseEntity.ok(offerMapper.toDto(offer));
     }

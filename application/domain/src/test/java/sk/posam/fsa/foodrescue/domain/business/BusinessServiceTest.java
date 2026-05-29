@@ -4,6 +4,8 @@ import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
+import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
+import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
 import sk.posam.fsa.foodrescue.domain.shared.AddressCoordinatesProvider;
 import sk.posam.fsa.foodrescue.domain.shared.FoodRescueException;
 import sk.posam.fsa.foodrescue.domain.user.User;
@@ -17,6 +19,7 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
@@ -33,6 +36,12 @@ class BusinessServiceTest {
     @Mock
     private BusinessIconStorage businessIconStorage;
 
+    @Mock
+    private OfferRepository offerRepository;
+
+    @Mock
+    private OrderRepository orderRepository;
+
     @Test
     void uploadIconStoresManagedBusinessIconAndUpdatesProfile() {
         Business business = managedBusiness();
@@ -45,7 +54,13 @@ class BusinessServiceTest {
         );
         when(businessRepository.save(any(Business.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        BusinessService service = new BusinessService(businessRepository, addressCoordinatesProvider, businessIconStorage);
+        BusinessService service = new BusinessService(
+                businessRepository,
+                offerRepository,
+                orderRepository,
+                addressCoordinatesProvider,
+                businessIconStorage
+        );
 
         Business updatedBusiness = service.uploadIcon(owner, business.getId(), upload);
 
@@ -62,7 +77,13 @@ class BusinessServiceTest {
 
         when(businessRepository.findById(business.getId())).thenReturn(Optional.of(business));
 
-        BusinessService service = new BusinessService(businessRepository, addressCoordinatesProvider, businessIconStorage);
+        BusinessService service = new BusinessService(
+                businessRepository,
+                offerRepository,
+                orderRepository,
+                addressCoordinatesProvider,
+                businessIconStorage
+        );
 
         FoodRescueException exception = assertThrows(
                 FoodRescueException.class,
@@ -79,7 +100,13 @@ class BusinessServiceTest {
 
         when(businessRepository.findById(business.getId())).thenReturn(Optional.of(business));
 
-        BusinessService service = new BusinessService(businessRepository, addressCoordinatesProvider, businessIconStorage);
+        BusinessService service = new BusinessService(
+                businessRepository,
+                offerRepository,
+                orderRepository,
+                addressCoordinatesProvider,
+                businessIconStorage
+        );
 
         FoodRescueException exception = assertThrows(
                 FoodRescueException.class,
@@ -96,12 +123,114 @@ class BusinessServiceTest {
 
         when(businessRepository.findAllByOwnerId(admin.getId())).thenReturn(List.of());
 
-        BusinessService service = new BusinessService(businessRepository, addressCoordinatesProvider, businessIconStorage);
+        BusinessService service = new BusinessService(
+                businessRepository,
+                offerRepository,
+                orderRepository,
+                addressCoordinatesProvider,
+                businessIconStorage
+        );
 
         service.getBusinesses(admin);
 
         verify(businessRepository).findAllByOwnerId(admin.getId());
         verify(businessRepository, never()).findAll();
+    }
+
+    @Test
+    void getPendingBusinessesRejectsInactiveAdmin() {
+        User admin = adminUser(99L);
+        admin.block();
+
+        BusinessService service = new BusinessService(
+                businessRepository,
+                offerRepository,
+                orderRepository,
+                addressCoordinatesProvider,
+                businessIconStorage
+        );
+
+        FoodRescueException exception = assertThrows(
+                FoodRescueException.class,
+                () -> service.getPendingBusinesses(admin)
+        );
+
+        assertEquals(FoodRescueException.Type.FORBIDDEN, exception.getType());
+        verify(businessRepository, never()).findAllByStatus(BusinessStatus.PENDING);
+    }
+
+    @Test
+    void deleteRejectsBusinessWithExistingOrders() {
+        Business business = managedBusiness();
+        User owner = activeUser(4L);
+
+        when(businessRepository.findById(business.getId())).thenReturn(Optional.of(business));
+        when(orderRepository.findAllByBusinessId(business.getId())).thenReturn(List.of(new sk.posam.fsa.foodrescue.domain.order.Order()));
+
+        BusinessService service = new BusinessService(
+                businessRepository,
+                offerRepository,
+                orderRepository,
+                addressCoordinatesProvider,
+                businessIconStorage
+        );
+
+        FoodRescueException exception = assertThrows(
+                FoodRescueException.class,
+                () -> service.delete(owner, business.getId())
+        );
+
+        assertEquals(FoodRescueException.Type.CONFLICT, exception.getType());
+        assertTrue(exception.getMessage().contains("existing orders"));
+        verify(businessRepository, never()).delete(any(Business.class));
+    }
+
+    @Test
+    void deleteRemovesBusinessWithExistingOffersWhenOrdersDoNotExist() {
+        Business business = managedBusiness();
+        User owner = activeUser(4L);
+        sk.posam.fsa.foodrescue.domain.offer.Offer firstOffer = new sk.posam.fsa.foodrescue.domain.offer.Offer();
+        sk.posam.fsa.foodrescue.domain.offer.Offer secondOffer = new sk.posam.fsa.foodrescue.domain.offer.Offer();
+
+        when(businessRepository.findById(business.getId())).thenReturn(Optional.of(business));
+        when(orderRepository.findAllByBusinessId(business.getId())).thenReturn(List.of());
+        when(offerRepository.findAllByBusinessId(business.getId())).thenReturn(List.of(firstOffer, secondOffer));
+
+        BusinessService service = new BusinessService(
+                businessRepository,
+                offerRepository,
+                orderRepository,
+                addressCoordinatesProvider,
+                businessIconStorage
+        );
+
+        service.delete(owner, business.getId());
+
+        verify(offerRepository).delete(firstOffer);
+        verify(offerRepository).delete(secondOffer);
+        verify(businessRepository).delete(eq(business));
+    }
+
+    @Test
+    void deleteRemovesBusinessWithoutOffersOrOrders() {
+        Business business = managedBusiness();
+        User owner = activeUser(4L);
+
+        when(businessRepository.findById(business.getId())).thenReturn(Optional.of(business));
+        when(orderRepository.findAllByBusinessId(business.getId())).thenReturn(List.of());
+        when(offerRepository.findAllByBusinessId(business.getId())).thenReturn(List.of());
+
+        BusinessService service = new BusinessService(
+                businessRepository,
+                offerRepository,
+                orderRepository,
+                addressCoordinatesProvider,
+                businessIconStorage
+        );
+
+        service.delete(owner, business.getId());
+
+        verify(businessRepository).delete(eq(business));
     }
 
     private Business managedBusiness() {

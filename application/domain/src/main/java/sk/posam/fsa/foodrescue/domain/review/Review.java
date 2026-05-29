@@ -55,31 +55,31 @@ public class Review {
         return createdAt;
     }
 
-    public void setId(Long id) {
+    void setId(Long id) {
         this.id = id;
     }
 
-    public void setReservationId(Long reservationId) {
+    void setReservationId(Long reservationId) {
         this.reservationId = reservationId;
     }
 
-    public void setBusinessId(Long businessId) {
+    void setBusinessId(Long businessId) {
         this.businessId = businessId;
     }
 
-    public void setUserId(Long userId) {
+    void setUserId(Long userId) {
         this.userId = userId;
     }
 
-    public void setRating(Integer rating) {
+    void setRating(Integer rating) {
         this.rating = rating;
     }
 
-    public void setComment(String comment) {
+    void setComment(String comment) {
         this.comment = comment;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

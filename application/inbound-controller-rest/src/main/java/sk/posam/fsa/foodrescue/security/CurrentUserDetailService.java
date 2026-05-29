@@ -77,12 +77,12 @@ public class CurrentUserDetailService {
     }
 
     private User createTrustedUser(Jwt jwt, String email) {
-        User user = new User();
-        user.setEmail(email);
-        user.setFirstName(resolveFirstName(jwt, email));
-        user.setLastName(resolveLastName(jwt));
-        user.setRole(resolveRole(jwt));
-        return user;
+        return User.externalIdentityCandidate(
+                resolveFirstName(jwt, email),
+                resolveLastName(jwt),
+                email,
+                resolveRole(jwt)
+        );
     }
 
     private String resolveFirstName(Jwt jwt, String email) {

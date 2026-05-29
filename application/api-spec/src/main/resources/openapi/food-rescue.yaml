@@ -486,7 +486,8 @@ paths:
         - Business
       summary: Delete business
       description: |
-        Deletes a business.
+        Deletes a business. Linked offer records are removed together with the business
+        when no orders are attached to it.
 
       operationId: deleteBusiness
       security:
@@ -520,6 +521,21 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/ErrorResponse'
+        '409':
+          description: Business cannot be deleted because historical orders already exist
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ErrorResponse'
+              examples:
+                businessHasOrders:
+                  value:
+                    code: CONFLICT
+                    message: Businesses with existing orders cannot be deleted
+                    details:
+                      - Keep this business for historical order records. Delete is only available before orders are created.
+                    timestamp: 2025-04-08T18:30:00Z
+                    path: /businesses/10
         '500':
           $ref: '#/components/responses/InternalServerErrorResponse'
 
@@ -1018,6 +1034,8 @@ paths:
       summary: List offers
       description: |
         Returns available offers for browsing, or offers of a specific business when `businessId` is provided.
+        Public callers receive only publicly visible offers of active businesses.
+        Authenticated active owners of the selected business receive the full managed business catalog.
 
       operationId: getOffers
       parameters:
@@ -1137,11 +1155,11 @@ paths:
         - Offer
       summary: Get offer by id
       description: |
-        Returns offer detail. Available offers can be viewed by authenticated users. Managed offers can also be viewed by their owner or admin.
+        Returns offer detail.
+        Public callers can view publicly visible offers of active businesses.
+        Authenticated active owners can also view their managed offers.
 
       operationId: getOffer
-      security:
-        - bearerAuth: []
       parameters:
         - $ref: '#/components/parameters/OfferIdPathParam'
       responses:
@@ -1547,6 +1565,23 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/NotificationResponse'
+        '401':
+          $ref: '#/components/responses/UnauthorizedResponse'
+        '500':
+          $ref: '#/components/responses/InternalServerErrorResponse'
+    delete:
+      tags:
+        - Notification
+      summary: Clear notifications
+      description: |
+        Deletes all notifications from the inbox of the authenticated user.
+
+      operationId: deleteNotifications
+      security:
+        - bearerAuth: []
+      responses:
+        '204':
+          description: Notifications cleared successfully
         '401':
           $ref: '#/components/responses/UnauthorizedResponse'
         '500':

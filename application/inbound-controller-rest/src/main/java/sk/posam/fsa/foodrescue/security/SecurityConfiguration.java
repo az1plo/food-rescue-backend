@@ -66,7 +66,7 @@ public class SecurityConfiguration {
 
                 .requestMatchers(HttpMethod.POST, "/offers").authenticated()
                 .requestMatchers(HttpMethod.GET, "/offers").permitAll()
-                .requestMatchers(HttpMethod.GET, "/offers/*").authenticated()
+                .requestMatchers(HttpMethod.GET, "/offers/*").permitAll()
                 .requestMatchers(HttpMethod.PUT, "/offers/*").authenticated()
                 .requestMatchers(HttpMethod.DELETE, "/offers/*").authenticated()
 
@@ -78,6 +78,7 @@ public class SecurityConfiguration {
                 .requestMatchers(HttpMethod.POST, "/orders/*/review").authenticated()
 
                 .requestMatchers(HttpMethod.GET, "/notifications").authenticated()
+                .requestMatchers(HttpMethod.DELETE, "/notifications").authenticated()
                 .requestMatchers(HttpMethod.GET, "/notifications/*").authenticated()
                 .requestMatchers(HttpMethod.POST, "/notifications/*/read").authenticated()
                 // All other requests require authorization

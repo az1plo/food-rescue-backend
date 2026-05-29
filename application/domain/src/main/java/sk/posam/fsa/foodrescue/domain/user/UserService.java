@@ -47,13 +47,7 @@ public class UserService implements UserFacade {
             return existingUser;
         }
 
-        user.setPassword(generateExternalIdentityPassword());
-
-        if (user.getRole() == null) {
-            user.setRole(UserRole.USER);
-        }
-
-        user.prepareForCreation();
+        user.prepareForExternalProvision(generateExternalIdentityPassword());
         userRepository.create(user);
         return user;
     }
@@ -64,10 +58,10 @@ public class UserService implements UserFacade {
         }
 
         if (forceRegularUserRole) {
-            user.setRole(UserRole.USER);
+            user.prepareForRegistration();
+        } else {
+            user.prepareForCreation();
         }
-
-        user.prepareForCreation();
 
         if (userRepository.findByEmail(user.getEmail()).isPresent()) {
             throw new FoodRescueException(

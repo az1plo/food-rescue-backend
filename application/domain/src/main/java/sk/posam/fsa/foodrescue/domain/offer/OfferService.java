@@ -53,11 +53,24 @@ public class OfferService implements OfferFacade {
     @Override
     public List<Offer> getBusinessOffers(User currentUser, Long businessId) {
         Business business = resolveBusiness(businessId);
-        ensureManagedBusiness(currentUser, business);
 
         List<Offer> offers = offerRepository.findAllByBusinessId(businessId);
         settleExpiredOffers(offers);
-        return offers;
+
+        if (canManageBusiness(currentUser, business)) {
+            return offers;
+        }
+
+        if (!business.isActive()) {
+            throw new FoodRescueException(
+                    FoodRescueException.Type.FORBIDDEN,
+                    "You are not allowed to browse offers for this business"
+            );
+        }
+
+        return offers.stream()
+                .filter(this::isPubliclyVisible)
+                .toList();
     }
 
     @Override
@@ -65,15 +78,15 @@ public class OfferService implements OfferFacade {
         Offer offer = settleExpiredOfferIfNeeded(resolveOffer(id));
         Business business = resolveBusiness(offer.getBusinessId());
 
-        if (business.canBeManagedBy(currentUser)) {
+        if (canManageBusiness(currentUser, business)) {
             return offer;
         }
 
-        if (offer.isAvailable() && business.isActive()) {
+        if (isPubliclyVisible(offer) && business.isActive()) {
             return offer;
         }
 
-        if (hasUserOrderForOffer(currentUser, offer.getId())) {
+        if (currentUser != null && currentUser.isActive() && hasUserOrderForOffer(currentUser, offer.getId())) {
             return offer;
         }
 
@@ -197,7 +210,7 @@ public class OfferService implements OfferFacade {
     }
 
     private void ensureManagedBusiness(User currentUser, Business business) {
-        if (!business.canBeManagedBy(currentUser)) {
+        if (!canManageBusiness(currentUser, business)) {
             throw new FoodRescueException(
                     FoodRescueException.Type.FORBIDDEN,
                     "You are not allowed to manage offers for this business"
@@ -206,12 +219,29 @@ public class OfferService implements OfferFacade {
     }
 
     private void ensureActiveUser(User currentUser, String message) {
-        if (!currentUser.isActive()) {
+        if (currentUser == null || !currentUser.isActive()) {
             throw new FoodRescueException(
                     FoodRescueException.Type.FORBIDDEN,
                     message
             );
         }
+    }
+
+    private boolean canManageBusiness(User currentUser, Business business) {
+        return currentUser != null
+                && currentUser.isActive()
+                && business != null
+                && business.canBeManagedBy(currentUser);
+    }
+
+    private boolean isPubliclyVisible(Offer offer) {
+        if (offer == null) {
+            return false;
+        }
+
+        return offer.getStatus() == OfferStatus.AVAILABLE
+                || offer.getStatus() == OfferStatus.SOLD_OUT
+                || offer.getStatus() == OfferStatus.EXPIRED;
     }
 
     private boolean hasUserOrderForOffer(User currentUser, Long offerId) {

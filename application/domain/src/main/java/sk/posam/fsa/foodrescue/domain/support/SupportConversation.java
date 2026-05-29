@@ -55,31 +55,31 @@ public class SupportConversation {
         return updatedAt;
     }
 
-    public void setId(Long id) {
+    void setId(Long id) {
         this.id = id;
     }
 
-    public void setPublicId(String publicId) {
+    void setPublicId(String publicId) {
         this.publicId = publicId;
     }
 
-    public void setUserId(Long userId) {
+    void setUserId(Long userId) {
         this.userId = userId;
     }
 
-    public void setSourcePage(String sourcePage) {
+    void setSourcePage(String sourcePage) {
         this.sourcePage = sourcePage;
     }
 
-    public void setLocale(String locale) {
+    void setLocale(String locale) {
         this.locale = locale;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public void setUpdatedAt(LocalDateTime updatedAt) {
+    void setUpdatedAt(LocalDateTime updatedAt) {
         this.updatedAt = updatedAt;
     }
 

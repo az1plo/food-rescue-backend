@@ -40,10 +40,10 @@ public class SupportUserOrdersTool implements SupportAssistantTool {
     @Override
     public Object execute(Map<String, Object> arguments, SupportAssistantToolContext context) {
         User currentUser = context == null ? null : context.currentUser();
-        if (currentUser == null || currentUser.getId() == null) {
+        if (currentUser == null || currentUser.getId() == null || !currentUser.isActive()) {
             return Map.of(
                     "authenticated", false,
-                    "message", "The user is not signed in."
+                    "message", "The user is not signed in or is not active."
             );
         }
 

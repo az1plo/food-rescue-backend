@@ -14,14 +14,13 @@ public class UserMapper {
             return null;
         }
 
-        User entity = new User();
-        entity.setFirstName(dto.getFirstName());
-        entity.setLastName(dto.getLastName());
-        entity.setEmail(dto.getEmail());
-        entity.setPassword(dto.getPassword());
-        entity.setRole(dto.getRole() != null ? UserRole.valueOf(dto.getRole().getValue()) : null);
-
-        return entity;
+        return User.create(
+                dto.getFirstName(),
+                dto.getLastName(),
+                dto.getEmail(),
+                dto.getPassword(),
+                dto.getRole() != null ? UserRole.valueOf(dto.getRole().getValue()) : null
+        );
     }
 
     public User toUser(RegisterUserRequestDto dto) {
@@ -29,14 +28,13 @@ public class UserMapper {
             return null;
         }
 
-        User entity = new User();
-        entity.setFirstName(dto.getFirstName());
-        entity.setLastName(dto.getLastName());
-        entity.setEmail(dto.getEmail());
-        entity.setPassword(dto.getPassword());
-        entity.setRole(UserRole.USER);
-
-        return entity;
+        return User.create(
+                dto.getFirstName(),
+                dto.getLastName(),
+                dto.getEmail(),
+                dto.getPassword(),
+                UserRole.USER
+        );
     }
 }
 

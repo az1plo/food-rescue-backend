@@ -97,7 +97,7 @@ class OfferServiceTest {
     }
 
     @Test
-    void getRejectsExpiredOfferForPublicUserAfterImmediateSettlement() {
+    void getReturnsExpiredOfferForPublicUserAfterImmediateSettlement() {
         Business business = activeBusiness(7L, 70L);
         Offer expiredOffer = availableOffer(business, LocalDateTime.now().minusHours(2), LocalDateTime.now().minusMinutes(10));
         User publicUser = activeUser(12L);
@@ -105,7 +105,52 @@ class OfferServiceTest {
         when(offerRepository.findById(expiredOffer.getId())).thenReturn(Optional.of(expiredOffer));
         when(offerRepository.save(any(Offer.class))).thenAnswer(invocation -> invocation.getArgument(0));
         when(businessRepository.findById(business.getId())).thenReturn(Optional.of(business));
-        when(orderRepository.findAllByUserId(publicUser.getId())).thenReturn(List.of());
+
+        OfferService service = new OfferService(
+                offerRepository,
+                businessRepository,
+                orderRepository,
+                addressCoordinatesProvider
+        );
+
+        Offer result = service.get(publicUser, expiredOffer.getId());
+
+        assertEquals(expiredOffer.getId(), result.getId());
+        assertEquals(OfferStatus.EXPIRED, expiredOffer.getStatus());
+        verify(offerRepository).save(expiredOffer);
+    }
+
+    @Test
+    void getBusinessOffersReturnsPublicCatalogForAnonymousUser() {
+        Business business = activeBusiness(7L, 70L);
+        Offer availableOffer = availableOffer(business, LocalDateTime.now().plusHours(1), LocalDateTime.now().plusHours(3));
+        Offer soldOutOffer = availableOffer(business, LocalDateTime.now().plusHours(2), LocalDateTime.now().plusHours(4));
+        soldOutOffer.markSoldOut();
+        Offer draftOffer = baseOffer(business, LocalDateTime.now().plusHours(3), LocalDateTime.now().plusHours(5));
+        draftOffer.setStatus(OfferStatus.DRAFT);
+
+        when(businessRepository.findById(business.getId())).thenReturn(Optional.of(business));
+        when(offerRepository.findAllByBusinessId(business.getId())).thenReturn(List.of(availableOffer, soldOutOffer, draftOffer));
+
+        OfferService service = new OfferService(
+                offerRepository,
+                businessRepository,
+                orderRepository,
+                addressCoordinatesProvider
+        );
+
+        List<Offer> result = service.getBusinessOffers(null, business.getId());
+
+        assertEquals(List.of(availableOffer.getId(), soldOutOffer.getId()), result.stream().map(Offer::getId).toList());
+    }
+
+    @Test
+    void getBusinessOffersRejectsAnonymousUserForInactiveBusiness() {
+        Business business = activeBusiness(7L, 70L);
+        business.setStatus(BusinessStatus.PENDING);
+
+        when(businessRepository.findById(business.getId())).thenReturn(Optional.of(business));
+        when(offerRepository.findAllByBusinessId(business.getId())).thenReturn(List.of());
 
         OfferService service = new OfferService(
                 offerRepository,
@@ -116,13 +161,11 @@ class OfferServiceTest {
 
         FoodRescueException exception = assertThrows(
                 FoodRescueException.class,
-                () -> service.get(publicUser, expiredOffer.getId())
+                () -> service.getBusinessOffers(null, business.getId())
         );
 
         assertEquals(FoodRescueException.Type.FORBIDDEN, exception.getType());
-        assertEquals(OfferStatus.EXPIRED, expiredOffer.getStatus());
-        verify(offerRepository).save(expiredOffer);
-        assertTrue(exception.getMessage().contains("do not have access"));
+        assertTrue(exception.getMessage().contains("not allowed to browse offers"));
     }
 
     @Test

@@ -9,6 +9,8 @@ public interface NotificationFacade {
 
     List<Notification> getNotifications(User currentUser);
 
+    void clearNotifications(User currentUser);
+
     Notification get(User currentUser, Long id);
 
     Notification markAsRead(User currentUser, Long id);

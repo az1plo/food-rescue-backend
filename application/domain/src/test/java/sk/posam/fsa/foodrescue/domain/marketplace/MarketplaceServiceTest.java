@@ -16,6 +16,8 @@ import sk.posam.fsa.foodrescue.domain.offer.PickupTimeWindow;
 import sk.posam.fsa.foodrescue.domain.review.ReviewRepository;
 import sk.posam.fsa.foodrescue.domain.shared.Address;
 import sk.posam.fsa.foodrescue.domain.user.User;
+import sk.posam.fsa.foodrescue.domain.user.UserRole;
+import sk.posam.fsa.foodrescue.domain.user.UserStatus;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -193,6 +195,8 @@ class MarketplaceServiceTest {
     private User activeUser(Long userId) {
         User user = new User();
         user.setId(userId);
+        user.setRole(UserRole.USER);
+        user.setStatus(UserStatus.ACTIVE);
         return user;
     }
 }

@@ -9,6 +9,12 @@ public class OrderPickupConfirmation {
     private Long confirmedByUserId;
     private LocalDateTime confirmedAt;
 
+    public static OrderPickupConfirmation create(Long confirmedByUserId) {
+        OrderPickupConfirmation confirmation = new OrderPickupConfirmation();
+        confirmation.confirmedByUserId = confirmedByUserId;
+        return confirmation;
+    }
+
     public Long getConfirmedByUserId() {
         return confirmedByUserId;
     }
@@ -17,11 +23,11 @@ public class OrderPickupConfirmation {
         return confirmedAt;
     }
 
-    public void setConfirmedByUserId(Long confirmedByUserId) {
+    void setConfirmedByUserId(Long confirmedByUserId) {
         this.confirmedByUserId = confirmedByUserId;
     }
 
-    public void setConfirmedAt(LocalDateTime confirmedAt) {
+    void setConfirmedAt(LocalDateTime confirmedAt) {
         this.confirmedAt = confirmedAt;
     }
 

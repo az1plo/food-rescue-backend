@@ -61,23 +61,23 @@ public class SupportConversationMessage {
         return createdAt;
     }
 
-    public void setId(Long id) {
+    void setId(Long id) {
         this.id = id;
     }
 
-    public void setConversationId(Long conversationId) {
+    void setConversationId(Long conversationId) {
         this.conversationId = conversationId;
     }
 
-    public void setRole(SupportConversationMessageRole role) {
+    void setRole(SupportConversationMessageRole role) {
         this.role = role;
     }
 
-    public void setContent(String content) {
+    void setContent(String content) {
         this.content = content;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 

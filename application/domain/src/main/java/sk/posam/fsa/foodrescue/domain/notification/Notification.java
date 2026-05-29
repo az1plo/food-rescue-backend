@@ -55,31 +55,31 @@ public class Notification {
         return readAt;
     }
 
-    public void setId(Long id) {
+    void setId(Long id) {
         this.id = id;
     }
 
-    public void setUserId(Long userId) {
+    void setUserId(Long userId) {
         this.userId = userId;
     }
 
-    public void setType(NotificationType type) {
+    void setType(NotificationType type) {
         this.type = type;
     }
 
-    public void setTitle(String title) {
+    void setTitle(String title) {
         this.title = title;
     }
 
-    public void setMessage(String message) {
+    void setMessage(String message) {
         this.message = message;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public void setReadAt(LocalDateTime readAt) {
+    void setReadAt(LocalDateTime readAt) {
         this.readAt = readAt;
     }
 

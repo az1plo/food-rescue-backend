@@ -236,6 +236,7 @@ public class MarketplaceService implements MarketplaceFacade {
                 distanceMeters,
                 entry.status() == OfferStatus.AVAILABLE
                         && entry.offer().getQuantityAvailable() > 0
+                        && (currentUser == null || currentUser.isActive())
                         && !entry.business().belongsTo(currentUser),
                 entry.offer().getPickupLocation(),
                 entry.offer().getPickupTimeWindow(),

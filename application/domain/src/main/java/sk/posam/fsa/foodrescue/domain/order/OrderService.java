@@ -47,8 +47,8 @@ public class OrderService implements OrderFacade {
 
     @Override
     public List<OrderDetailsView> getOrders(User currentUser, Long businessId) {
+        ensureActiveUser(currentUser, "Only active users can view orders");
         if (businessId == null) {
-            ensureActiveUser(currentUser, "Only active users can view orders");
             List<Order> userOrders = orderRepository.findAllByUserId(currentUser.getId());
             settleExpiredOrders(userOrders);
             return enrichOrders(userOrders);
@@ -63,6 +63,7 @@ public class OrderService implements OrderFacade {
 
     @Override
     public OrderDetailsView get(User currentUser, Long id) {
+        ensureActiveUser(currentUser, "Only active users can view an order");
         Order order = resolveOrder(id);
         Business business = resolveBusiness(order.getBusinessId());
 
@@ -131,15 +132,16 @@ public class OrderService implements OrderFacade {
         );
         order.prepareForCreation();
 
-        OrderPayment payment = new OrderPayment();
-        payment.setPaidByUserId(currentUser.getId());
-        payment.setAmount(resolveOrderAmount(order.getItem()));
-        payment.setCurrency("EUR");
-        payment.setCardHolderName(resolveCardHolderName(currentUser, cardHolderName));
-        payment.setCardLast4(normalizeCardLast4(cardLast4));
-        payment.setProviderReference(generateReference("PAY"));
-        payment.setPickupToken(generatePickupToken());
-        order.markPaid(payment);
+        BigDecimal paymentAmount = resolveOrderAmount(order.getItem());
+        order.markPaid(
+                currentUser.getId(),
+                paymentAmount,
+                "EUR",
+                resolveCardHolderName(currentUser, cardHolderName),
+                normalizeCardLast4(cardLast4),
+                generateReference("PAY"),
+                generatePickupToken()
+        );
 
         offer.reserveQuantity(requestedQuantity);
 
@@ -157,7 +159,7 @@ public class OrderService implements OrderFacade {
                     business.getOwnerId(),
                     NotificationType.RESERVATION_STATUS_CHANGED,
                     "Order paid",
-                    "Order #" + savedOrder.getId() + " for \"" + offer.getTitle() + "\" was paid for " + formatCurrency(payment.getAmount()) + "."
+                    "Order #" + savedOrder.getId() + " for \"" + offer.getTitle() + "\" was paid for " + formatCurrency(paymentAmount) + "."
             );
         }
 
@@ -166,6 +168,7 @@ public class OrderService implements OrderFacade {
 
     @Override
     public OrderPickupPass getPickupPass(User currentUser, Long id) {
+        ensureActiveUser(currentUser, "Only active users can access a pickup pass");
         Order order = resolveOrder(id);
         ensureOrderOwnerOrAdmin(currentUser, order, "You are not allowed to access the pickup pass for this order");
         order = settleExpiredOrderIfNeeded(order);

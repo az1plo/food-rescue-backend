@@ -1,8 +1,32 @@
 @startuml
+title Savr Platform - UML class diagram
+
 hide circle
 skinparam classAttributeIconSize 0
+skinparam shadowing false
+skinparam linetype ortho
+skinparam packageStyle rectangle
+left to right direction
 
-enum Role {
+skinparam class {
+  BackgroundColor #FFF6EB
+  BorderColor #7C6A58
+  ArrowColor #586A7C
+}
+
+skinparam interface {
+  BackgroundColor #EEE8FF
+  BorderColor #776A9B
+  ArrowColor #586A7C
+}
+
+skinparam enum {
+  BackgroundColor #E8FFD9
+  BorderColor #6E9C57
+  ArrowColor #586A7C
+}
+
+enum UserRole {
   USER
   ADMIN
 }
@@ -30,7 +54,18 @@ enum OfferStatus {
   CANCELLED
 }
 
-enum ReservationStatus {
+enum OfferCategory {
+  BAKERY
+  READY_MEAL
+  PRODUCE
+  GROCERY
+  DESSERT
+  BEVERAGE
+  MIXED
+  OTHER
+}
+
+enum OrderStatus {
   ACTIVE
   CANCELLED
   PICKED_UP
@@ -46,32 +81,60 @@ enum NotificationType {
   SYSTEM
 }
 
+enum SupportConversationMessageRole {
+  USER
+  ASSISTANT
+  TOOL
+  SYSTEM
+}
+
 class User {
   - id: Long
   - firstName: String
   - lastName: String
   - email: String
   - password: String
-  - role: Role
+  - role: UserRole
   - status: UserStatus
   - createdAt: LocalDateTime
+  + isActive(): boolean
   + isAdmin(): boolean
+  + isBlocked(): boolean
+  + isDeleted(): boolean
+  + activate(): void
   + block(): void
+  + markDeleted(): void
+  + prepareForRegistration(): void
+  + prepareForExternalProvision(password: String): void
+  + prepareForCreation(): void
 }
 
 class Business {
-  - ownerId: Long
   - id: Long
+  - ownerId: Long
   - name: String
   - description: String
+  - iconUrl: String
   - status: BusinessStatus
+  - ratingAverage: Double
+  - ratingCount: Integer
+  - createdAt: LocalDateTime
+  + isPending(): boolean
+  + isActive(): boolean
+  + isBlocked(): boolean
+  + isRejected(): boolean
+  + belongsTo(user: User): boolean
+  + canBeManagedBy(user: User): boolean
   + update(data: Business): void
   + approve(): void
   + reject(): void
   + block(): void
-  + canPublishOffers(): boolean
-  + changeAddress(address: Address): void
-  + updateDescription(description: String): void
+  + reopenForReview(): void
+  + registerRating(rating: Integer): void
+  + normalizedName(): String
+  + updateIcon(iconUrl: String): void
+  + setAddressCoordinates(latitude: Double, longitude: Double): void
+  + prepareForCreation(): void
 }
 
 class Address {
@@ -79,6 +142,8 @@ class Address {
   - city: String
   - postalCode: String
   - country: String
+  - latitude: Double
+  - longitude: Double
 }
 
 class Offer {
@@ -86,14 +151,39 @@ class Offer {
   - businessId: Long
   - title: String
   - description: String
-  - price: Decimal
+  - imageUrl: String
+  - category: OfferCategory
+  - illustrativeImage: boolean
+  - containsAllergens: List
+  - mayContainAllergens: List
+  - otherAllergenNote: String
+  - price: BigDecimal
+  - originalPrice: BigDecimal
   - quantityAvailable: Integer
   - status: OfferStatus
-  + update(data: Offer): void
-  + publish(): void
-  + cancel(): void
+  - autoRepeatEnabled: boolean
+  - autoRepeatQuantity: Integer
+  - autoRepeatPickupStartTime: LocalTime
+  - autoRepeatPickupEndTime: LocalTime
+  - recurrenceKey: String
+  - createdAt: LocalDateTime
+  + isAvailable(): boolean
+  + isManagedState(): boolean
+  + belongsTo(business: Business): boolean
+  + publish(business: Business): void
+  + markReserved(): void
+  + reserveQuantity(quantity: int): void
+  + reopenAfterReservationCancellation(): void
+  + restoreQuantity(quantity: int): void
+  + markPickedUp(): void
   + markSoldOut(): void
-  + reserve(): void 
+  + expire(): void
+  + cancel(): void
+  + update(data: Offer): void
+  + normalizedTitle(): String
+  + setPickupLocationCoordinates(latitude: Double, longitude: Double): void
+  + prepareForCreation(): void
+  + createRepeatedOccurrenceFor(date: LocalDate): Offer
 }
 
 class OfferItem {
@@ -101,16 +191,8 @@ class OfferItem {
   - quantity: Integer
 }
 
-class Reservation {
-  - id: Long
-  - status: ReservationStatus
-  + cancel(): void
-  + markPickedUp(): void
-  + markNoShow(): void
-}
-
 class PickupLocation {
-  - address: Address
+  - note: String
 }
 
 class PickupTimeWindow {
@@ -118,8 +200,61 @@ class PickupTimeWindow {
   - to: LocalDateTime
 }
 
-class PickupConfirmation {
+class Order {
+  - id: Long
+  - businessId: Long
+  - userId: Long
+  - businessName: String
+  - status: OrderStatus
+  - createdAt: LocalDateTime
+  - cancelledAt: LocalDateTime
+  + belongsTo(user: User): boolean
+  + isPaid(): boolean
+  + canBeManagedBy(user: User, business: Business): boolean
+  + prepareForCreation(): void
+  + markPaid(...): void
+  + markPickedUp(...): void
+  + markNoShow(...): void
+}
+
+class OrderItem {
+  - offerId: Long
+  - quantity: Integer
+  - title: String
+  - imageUrl: String
+  - unitPrice: BigDecimal
+}
+
+class OrderPayment {
+  - paidByUserId: Long
+  - amount: BigDecimal
+  - currency: String
+  - cardHolderName: String
+  - cardLast4: String
+  - providerReference: String
+  - pickupToken: String
+  - paidAt: LocalDateTime
+  - transferredToBusinessAt: LocalDateTime
+  - transferReference: String
+  + prepareForCreation(): void
+  + markTransferredToBusiness(...): void
+}
+
+class OrderPickupConfirmation {
+  - confirmedByUserId: Long
   - confirmedAt: LocalDateTime
+  + prepareForCreation(): void
+}
+
+class Review {
+  - id: Long
+  - reservationId: Long
+  - businessId: Long
+  - userId: Long
+  - rating: Integer
+  - comment: String
+  - createdAt: LocalDateTime
+  + prepareForCreation(): void
 }
 
 class Notification {
@@ -129,95 +264,122 @@ class Notification {
   - title: String
   - message: String
   - createdAt: LocalDateTime
+  - readAt: LocalDateTime
+  + isRead(): boolean
   + markAsRead(): void
+  + belongsTo(user: User): boolean
+  + prepareForCreation(): void
+}
+
+class SupportConversation {
+  - id: Long
+  - publicId: String
+  - userId: Long
+  - sourcePage: String
+  - locale: String
+  - createdAt: LocalDateTime
+  - updatedAt: LocalDateTime
+  + refreshMetadata(...): void
+  + touch(): void
+  + prepareForCreation(): void
+}
+
+class SupportConversationMessage {
+  - id: Long
+  - conversationId: Long
+  - role: SupportConversationMessageRole
+  - content: String
+  - createdAt: LocalDateTime
+  + prepareForCreation(): void
 }
 
 interface UserRepository {
-  + create(user: User): void
-  + read(id: Long): User
-  + update(user: User): void
-  + delete(id: Long): void
-  + findByEmail(email: String): User
+  + findByEmail(email: String)
+  + save(user: User)
 }
 
 interface BusinessRepository {
-  + create(business: Business): void
-  + read(id: Long): Business
-  + update(business: Business): void
-  + delete(id: Long): void
-  + findByUser(user: User): Collection<Business>
+  + findById(id: Long)
+  + save(business: Business)
 }
 
 interface OfferRepository {
-  + create(offer: Offer): void
-  + read(id: Long): Offer
-  + update(offer: Offer): void
-  + delete(id: Long): void
-  + findByBusiness(business: Business): Collection<Offer>
+  + findById(id: Long)
+  + save(offer: Offer)
 }
 
-interface ReservationRepository {
-  + create(reservation: Reservation): void
-  + read(id: Long): Reservation
-  + update(reservation: Reservation): void
-  + delete(id: Long): void
-  + findByUser(user: User): Collection<Reservation>
+interface OrderRepository {
+  + findById(id: Long)
+  + save(order: Order)
+}
+
+interface ReviewRepository {
+  + findByReservationId(id: Long)
+  + save(review: Review)
 }
 
 interface NotificationRepository {
-  + create(notification: Notification): void
-  + read(id: Long): Notification
-  + update(notification: Notification): void
-  + delete(id: Long): void
-  + findByUser(user: User): Collection<Notification>
+  + findAllByUserId(userId: Long)
+  + save(notification: Notification)
 }
 
-class UserFactory {
-  + create(...): User
-}
+User --> UserRole : role
+User --> UserStatus : status
+Business --> BusinessStatus : status
+Offer --> OfferStatus : status
+Order --> OrderStatus : status
+Notification --> NotificationType : type
 
-class BusinessFactory {
-  + create(...): Business
-}
-
-class OfferFactory {
-  + create(...): Offer
-}
-
-class ReservationFactory {
-  + create(...): Reservation
-}
-
-class ReservationDomainService {
-  + confirmPickup(...): void
-  + handleNoShow(...): void
-}
-
-User "1" <-- "0..*" Business : manages
+User "1" <-- "0..*" Business : owns
 Business "1" *-- "1" Address
 Business "1" --> "0..*" Offer : publishes
-User "1" --> "0..*" Notification : receives
 
 Offer "1" *-- "1..*" OfferItem
 Offer "1" *-- "1" PickupLocation
+PickupLocation "1" *-- "1" Address
 Offer "1" *-- "1" PickupTimeWindow
 
-Reservation "0..*" --> "1" Offer
-Reservation "0..*" --> "1" User
-Reservation "1" --> "0..1" PickupConfirmation
+User "1" --> "0..*" Order : creates
+Business "1" --> "0..*" Order : fulfills
+Order "1" *-- "1" OrderItem
+Order "1" *-- "1" PickupLocation
+Order "1" *-- "1" PickupTimeWindow
+Order "1" *-- "0..1" OrderPayment
+Order "1" *-- "0..1" OrderPickupConfirmation
+
+Review "0..*" --> "1" Order
+Review "0..*" --> "1" Business
+Review "0..*" --> "1" User
+
+Notification "0..*" --> "1" User : delivered to
+SupportConversation "0..*" --> "0..1" User : started by
+SupportConversation "1" --> "0..*" SupportConversationMessage : contains
 
 UserRepository ..> User
 BusinessRepository ..> Business
 OfferRepository ..> Offer
-ReservationRepository ..> Reservation
+OrderRepository ..> Order
+ReviewRepository ..> Review
 NotificationRepository ..> Notification
 
-UserFactory ..> User
-BusinessFactory ..> Business
-OfferFactory ..> Offer
-ReservationFactory ..> Reservation
+User -[hidden]- Business
+Business -[hidden]- Offer
+Offer -[hidden]- Order
+Order -[hidden]- Review
 
-ReservationDomainService ..> Reservation
-ReservationDomainService ..> Offer
-ReservationDomainService ..> PickupConfirmation
+Address -[hidden]- Business
+OfferItem -[hidden]- PickupLocation
+PickupLocation -[hidden]- PickupTimeWindow
+OrderItem -[hidden]- OrderPayment
+OrderPayment -[hidden]- OrderPickupConfirmation
+
+SupportConversation -[hidden]- User
+Notification -[hidden]- Order
+
+UserRepository -[hidden]- BusinessRepository
+BusinessRepository -[hidden]- OfferRepository
+OfferRepository -[hidden]- OrderRepository
+OrderRepository -[hidden]- ReviewRepository
+ReviewRepository -[hidden]- NotificationRepository
+
 @enduml

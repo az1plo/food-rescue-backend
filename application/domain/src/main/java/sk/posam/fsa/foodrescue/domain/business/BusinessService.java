@@ -5,6 +5,8 @@ import sk.posam.fsa.foodrescue.domain.shared.ValidationException;
 import sk.posam.fsa.foodrescue.domain.business.Business;
 import sk.posam.fsa.foodrescue.domain.user.User;
 import sk.posam.fsa.foodrescue.domain.business.BusinessStatus;
+import sk.posam.fsa.foodrescue.domain.offer.OfferRepository;
+import sk.posam.fsa.foodrescue.domain.order.OrderRepository;
 import sk.posam.fsa.foodrescue.domain.shared.AddressCoordinatesProvider;
 import sk.posam.fsa.foodrescue.domain.business.BusinessRepository;
 
@@ -15,13 +17,19 @@ public class BusinessService implements BusinessFacade {
     private static final int MAX_ICON_BYTES = 4 * 1024 * 1024;
 
     private final BusinessRepository businessRepository;
+    private final OfferRepository offerRepository;
+    private final OrderRepository orderRepository;
     private final AddressCoordinatesProvider addressCoordinatesProvider;
     private final BusinessIconStorage businessIconStorage;
 
     public BusinessService(BusinessRepository businessRepository,
+                           OfferRepository offerRepository,
+                           OrderRepository orderRepository,
                            AddressCoordinatesProvider addressCoordinatesProvider,
                            BusinessIconStorage businessIconStorage) {
         this.businessRepository = businessRepository;
+        this.offerRepository = offerRepository;
+        this.orderRepository = orderRepository;
         this.addressCoordinatesProvider = addressCoordinatesProvider;
         this.businessIconStorage = businessIconStorage;
     }
@@ -32,12 +40,7 @@ public class BusinessService implements BusinessFacade {
             throw new ValidationException("Business must not be null");
         }
 
-        if (!currentUser.isActive()) {
-            throw new FoodRescueException(
-                    FoodRescueException.Type.FORBIDDEN,
-                    "Only active users can create a business"
-            );
-        }
+        ensureActiveUser(currentUser, "Only active users can create a business");
 
         business.assignOwner(currentUser.getId());
         populateBusinessCoordinates(business);
@@ -55,6 +58,7 @@ public class BusinessService implements BusinessFacade {
 
     @Override
     public List<Business> getBusinesses(User currentUser) {
+        ensureActiveUser(currentUser, "Only active users can view their businesses");
         return businessRepository.findAllByOwnerId(currentUser.getId());
     }
 
@@ -66,6 +70,7 @@ public class BusinessService implements BusinessFacade {
 
     @Override
     public Business get(User currentUser, Long id) {
+        ensureActiveUser(currentUser, "Only active users can view a business");
         Business business = businessRepository.findById(id)
                 .orElseThrow(() -> new FoodRescueException(
                         FoodRescueException.Type.NOT_FOUND,
@@ -108,12 +113,7 @@ public class BusinessService implements BusinessFacade {
                         "Business with id=" + id + " was not found"
                 ));
 
-        if (!currentUser.isActive()) {
-            throw new FoodRescueException(
-                    FoodRescueException.Type.FORBIDDEN,
-                    "Only active users can update a business"
-            );
-        }
+        ensureActiveUser(currentUser, "Only active users can update a business");
 
         if (!business.belongsTo(currentUser)) {
             throw new FoodRescueException(
@@ -162,7 +162,7 @@ public class BusinessService implements BusinessFacade {
         String previousIconId = extractManagedIconId(business.getIconUrl());
         StoredBusinessIcon storedIcon = businessIconStorage.store(normalizedUpload);
 
-        business.setIconUrl(storedIcon.imageUrl());
+        business.updateIcon(storedIcon.imageUrl());
         Business savedBusiness = businessRepository.save(business);
 
         if (previousIconId != null && !previousIconId.equals(storedIcon.imageId())) {
@@ -179,19 +179,13 @@ public class BusinessService implements BusinessFacade {
 
     @Override
     public void delete(User currentUser, Long id) {
+        ensureActiveUser(currentUser, "Only active users can delete a business");
 
         Business business = businessRepository.findById(id)
                 .orElseThrow(() -> new FoodRescueException(
                         FoodRescueException.Type.NOT_FOUND,
                         "Business with id=" + id + " was not found"
                 ));
-
-        if (!currentUser.isActive()) {
-            throw new FoodRescueException(
-                    FoodRescueException.Type.FORBIDDEN,
-                    "Only active users can delete a business"
-            );
-        }
 
         if (!business.belongsTo(currentUser)) {
             throw new FoodRescueException(
@@ -200,6 +194,16 @@ public class BusinessService implements BusinessFacade {
             );
         }
 
+        if (!orderRepository.findAllByBusinessId(id).isEmpty()) {
+            throw new FoodRescueException(
+                    FoodRescueException.Type.CONFLICT,
+                    "Businesses with existing orders cannot be deleted",
+                    List.of("Keep this business for historical order records. Delete is only available before orders are created.")
+            );
+        }
+
+        offerRepository.findAllByBusinessId(id)
+                .forEach(offerRepository::delete);
         businessRepository.delete(business);
     }
 
@@ -213,7 +217,7 @@ public class BusinessService implements BusinessFacade {
     }
 
     private void ensureAdmin(User currentUser, String message) {
-        if (currentUser == null || !currentUser.isAdmin()) {
+        if (currentUser == null || !currentUser.isActive() || !currentUser.isAdmin()) {
             throw new FoodRescueException(
                     FoodRescueException.Type.FORBIDDEN,
                     message

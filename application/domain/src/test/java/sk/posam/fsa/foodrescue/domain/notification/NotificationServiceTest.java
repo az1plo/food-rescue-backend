@@ -42,6 +42,39 @@ class NotificationServiceTest {
     }
 
     @Test
+    void getNotificationsRejectsInactiveUser() {
+        User currentUser = activeUser(7L);
+        currentUser.block();
+
+        NotificationService service = new NotificationService(notificationRepository);
+
+        FoodRescueException exception = assertThrows(
+                FoodRescueException.class,
+                () -> service.getNotifications(currentUser)
+        );
+
+        assertEquals(FoodRescueException.Type.FORBIDDEN, exception.getType());
+        assertTrue(exception.getMessage().contains("Only active users"));
+        verify(notificationRepository, never()).findAllByUserId(currentUser.getId());
+    }
+
+    @Test
+    void clearNotificationsDeletesCurrentUsersInbox() {
+        User currentUser = activeUser(7L);
+        List<Notification> inbox = List.of(notification(10L, 7L), notification(11L, 7L));
+
+        when(notificationRepository.findAllByUserId(currentUser.getId())).thenReturn(inbox);
+
+        NotificationService service = new NotificationService(notificationRepository);
+
+        service.clearNotifications(currentUser);
+
+        verify(notificationRepository).findAllByUserId(currentUser.getId());
+        verify(notificationRepository).delete(inbox.get(0));
+        verify(notificationRepository).delete(inbox.get(1));
+    }
+
+    @Test
     void markAsReadPersistsOwnedNotification() {
         User currentUser = activeUser(7L);
         Notification notification = notification(10L, 7L);

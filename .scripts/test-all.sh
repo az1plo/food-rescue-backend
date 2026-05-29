@@ -8,8 +8,22 @@ APP_LOG="${APP_LOG:-${ROOT_DIR}/app-test.log}"
 
 cd "${ROOT_DIR}"
 
+if [[ -x "./mvnw" ]]; then
+  MVN_CMD=("./mvnw")
+elif command -v mvn >/dev/null 2>&1; then
+  MVN_CMD=("mvn")
+else
+  echo "[test-all] Maven wrapper or mvn command is required." >&2
+  exit 1
+fi
+
 echo "[test-all] Running Maven tests..."
-./mvnw test
+"${MVN_CMD[@]}" test
+
+if [[ ! -d "${ROOT_DIR}/tests" ]]; then
+  echo "[test-all] No ./tests directory found. Skipping API tests."
+  exit 0
+fi
 
 echo "[test-all] Starting application for API tests..."
 RUN_ARGS=(-DskipTests)

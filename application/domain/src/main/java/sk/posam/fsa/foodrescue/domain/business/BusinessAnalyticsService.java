@@ -493,7 +493,7 @@ public class BusinessAnalyticsService implements BusinessAnalyticsFacade {
     }
 
     private void ensureManagedBusiness(User currentUser, Business business) {
-        if (!business.canBeManagedBy(currentUser)) {
+        if (currentUser == null || !currentUser.isActive() || !business.canBeManagedBy(currentUser)) {
             throw new FoodRescueException(
                     FoodRescueException.Type.FORBIDDEN,
                     "You are not allowed to view analytics for this business"

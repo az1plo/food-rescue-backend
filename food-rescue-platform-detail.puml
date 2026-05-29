@@ -1,0 +1,309 @@
+@startuml
+title Savr Platform - domain model and ports
+
+hide circle
+hide empty members
+skinparam classAttributeIconSize 0
+skinparam packageStyle rectangle
+skinparam linetype ortho
+skinparam shadowing false
+left to right direction
+
+enum UserRole {
+  USER
+  ADMIN
+}
+
+enum UserStatus {
+  ACTIVE
+  BLOCKED
+  DELETED
+}
+
+enum BusinessStatus {
+  PENDING
+  ACTIVE
+  BLOCKED
+  REJECTED
+}
+
+enum OfferStatus {
+  DRAFT
+  AVAILABLE
+  RESERVED
+  PICKED_UP
+  SOLD_OUT
+  EXPIRED
+  CANCELLED
+}
+
+enum OrderStatus {
+  ACTIVE
+  CANCELLED
+  PICKED_UP
+  NO_SHOW
+}
+
+enum NotificationType {
+  BUSINESS_STATUS_CHANGED
+  OFFER_PUBLISHED
+  OFFER_RESERVED
+  OFFER_CANCELLED
+  RESERVATION_STATUS_CHANGED
+  SYSTEM
+}
+
+enum SupportConversationMessageRole {
+  USER
+  ASSISTANT
+  TOOL
+  SYSTEM
+}
+
+package "Core entities" {
+  class User {
+    - id: Long
+    - email: String
+    - role: UserRole
+    - status: UserStatus
+    + activate(): void
+    + block(): void
+    + prepareForRegistration(): void
+  }
+
+  class Business {
+    - id: Long
+    - ownerId: Long
+    - name: String
+    - status: BusinessStatus
+    + update(data: Business): void
+    + approve(): void
+    + registerRating(rating: Integer): void
+    + canPublishOffers(): boolean
+  }
+
+  class Offer {
+    - id: Long
+    - businessId: Long
+    - title: String
+    - price: BigDecimal
+    - quantityAvailable: Integer
+    - status: OfferStatus
+    + update(data: Offer): void
+    + publish(business: Business): void
+    + reserveQuantity(quantity: int): void
+    + cancel(): void
+    + expire(): void
+    + createRepeatedOccurrenceFor(date: LocalDate): Offer
+  }
+
+  class Order {
+    - id: Long
+    - businessId: Long
+    - userId: Long
+    - status: OrderStatus
+    + prepareForCreation(): void
+    + markPaid(...): void
+    + markPickedUp(...): void
+    + markNoShow(...): void
+  }
+
+  class Review {
+    - id: Long
+    - businessId: Long
+    - userId: Long
+    - rating: Integer
+    + prepareForCreation(): void
+  }
+
+  class Notification {
+    - id: Long
+    - userId: Long
+    - type: NotificationType
+    - title: String
+    + markAsRead(): void
+  }
+
+  class SupportConversation {
+    - id: Long
+    - publicId: String
+    - userId: Long
+    - sourcePage: String
+    + refreshMetadata(...): void
+    + touch(): void
+  }
+
+  class SupportConversationMessage {
+    - id: Long
+    - conversationId: Long
+    - role: SupportConversationMessageRole
+    + prepareForCreation(): void
+  }
+}
+
+package "Value objects" {
+  class Address {
+    - street: String
+    - city: String
+    - postalCode: String
+    - country: String
+    - latitude: Double
+    - longitude: Double
+  }
+
+  class OfferItem {
+    - name: String
+    - quantity: Integer
+  }
+
+  class PickupLocation {
+    - address: Address
+    - note: String
+  }
+
+  class PickupTimeWindow {
+    - from: LocalDateTime
+    - to: LocalDateTime
+  }
+
+  class OrderItem {
+    - offerId: Long
+    - quantity: Integer
+    - title: String
+    - unitPrice: BigDecimal
+  }
+
+  class OrderPayment {
+    - amount: BigDecimal
+    - currency: String
+    - pickupToken: String
+    - paidAt: LocalDateTime
+    - transferredToBusinessAt: LocalDateTime
+    + markTransferredToBusiness(...): void
+  }
+
+  class OrderPickupConfirmation {
+    - confirmedByUserId: Long
+    - confirmedAt: LocalDateTime
+  }
+}
+
+package "Facades and services" {
+  interface UserFacade
+  interface BusinessFacade
+  interface BusinessAnalyticsFacade
+  interface OfferFacade
+  interface OrderFacade
+  interface NotificationFacade
+  interface MarketplaceFacade
+  interface SupportFacade
+  interface OfferAssistantFacade
+  interface AuthFacade
+
+  class UserService
+  class BusinessService
+  class BusinessAnalyticsService
+  class OfferService
+  class OrderService
+  class NotificationService
+  class MarketplaceService
+  class SupportService
+  class OfferAssistantService
+  class AuthService
+}
+
+package "Repository and external ports" {
+  interface UserRepository
+  interface BusinessRepository
+  interface OfferRepository
+  interface OrderRepository
+  interface ReviewRepository
+  interface NotificationRepository
+  interface SupportConversationRepository
+  interface BusinessIconStorage
+  interface OfferImageStorage
+  interface OfferAiProvider
+  interface SupportAssistantProvider
+  interface AddressCoordinatesProvider
+  interface UserIdentityProvider
+  interface AuthTokenExchangeProvider
+}
+
+User "1" <-- "0..*" Business : owns
+Business "1" *-- "1" Address
+Business "1" --> "0..*" Offer : publishes
+
+Offer "1" *-- "1..*" OfferItem
+Offer "1" *-- "1" PickupLocation
+PickupLocation "1" *-- "1" Address
+Offer "1" *-- "1" PickupTimeWindow
+
+User "1" --> "0..*" Order : places
+Business "1" --> "0..*" Order : fulfills
+Order "1" *-- "1" OrderItem
+Order "1" *-- "1" PickupLocation
+Order "1" *-- "1" PickupTimeWindow
+Order "1" *-- "0..1" OrderPayment
+Order "1" *-- "0..1" OrderPickupConfirmation
+
+Review "0..*" --> "1" Order : rates
+Review "0..*" --> "1" Business
+Review "0..*" --> "1" User
+
+User "1" --> "0..*" Notification : receives
+SupportConversation "0..*" --> "0..1" User : initiated by
+SupportConversation "1" --> "0..*" SupportConversationMessage : contains
+
+UserService ..|> UserFacade
+BusinessService ..|> BusinessFacade
+BusinessAnalyticsService ..|> BusinessAnalyticsFacade
+OfferService ..|> OfferFacade
+OrderService ..|> OrderFacade
+NotificationService ..|> NotificationFacade
+MarketplaceService ..|> MarketplaceFacade
+SupportService ..|> SupportFacade
+OfferAssistantService ..|> OfferAssistantFacade
+AuthService ..|> AuthFacade
+
+UserService ..> UserRepository
+UserService ..> UserIdentityProvider
+BusinessService ..> BusinessRepository
+BusinessService ..> OfferRepository
+BusinessService ..> OrderRepository
+BusinessService ..> BusinessIconStorage
+BusinessService ..> AddressCoordinatesProvider
+
+OfferService ..> OfferRepository
+OfferService ..> BusinessRepository
+OfferService ..> OrderRepository
+OfferService ..> AddressCoordinatesProvider
+
+OrderService ..> OrderRepository
+OrderService ..> OfferRepository
+OrderService ..> BusinessRepository
+OrderService ..> ReviewRepository
+OrderService ..> NotificationRepository
+
+NotificationService ..> NotificationRepository
+MarketplaceService ..> OfferRepository
+MarketplaceService ..> BusinessRepository
+MarketplaceService ..> ReviewRepository
+SupportService ..> SupportConversationRepository
+SupportService ..> SupportAssistantProvider
+OfferAssistantService ..> BusinessRepository
+OfferAssistantService ..> OfferRepository
+OfferAssistantService ..> OfferImageStorage
+OfferAssistantService ..> OfferAiProvider
+OfferAssistantService ..> AddressCoordinatesProvider
+AuthService ..> AuthTokenExchangeProvider
+
+UserRepository ..> User
+BusinessRepository ..> Business
+OfferRepository ..> Offer
+OrderRepository ..> Order
+ReviewRepository ..> Review
+NotificationRepository ..> Notification
+SupportConversationRepository ..> SupportConversation
+SupportConversationRepository ..> SupportConversationMessage
+
+@enduml

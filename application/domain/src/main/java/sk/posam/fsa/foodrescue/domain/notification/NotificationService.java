@@ -17,11 +17,20 @@ public class NotificationService implements NotificationFacade {
 
     @Override
     public List<Notification> getNotifications(User currentUser) {
+        ensureActiveUser(currentUser, "Only active users can view notifications");
         return notificationRepository.findAllByUserId(currentUser.getId());
     }
 
     @Override
+    public void clearNotifications(User currentUser) {
+        ensureActiveUser(currentUser, "Only active users can clear notifications");
+        notificationRepository.findAllByUserId(currentUser.getId())
+                .forEach(notificationRepository::delete);
+    }
+
+    @Override
     public Notification get(User currentUser, Long id) {
+        ensureActiveUser(currentUser, "Only active users can view a notification");
         Notification notification = resolveNotification(id);
         ensureOwner(currentUser, notification);
         return notification;
@@ -29,6 +38,7 @@ public class NotificationService implements NotificationFacade {
 
     @Override
     public Notification markAsRead(User currentUser, Long id) {
+        ensureActiveUser(currentUser, "Only active users can update notifications");
         Notification notification = resolveNotification(id);
         ensureOwner(currentUser, notification);
         notification.markAsRead();
@@ -48,6 +58,15 @@ public class NotificationService implements NotificationFacade {
             throw new FoodRescueException(
                     FoodRescueException.Type.FORBIDDEN,
                     "You do not have access to notification with id=" + notification.getId()
+            );
+        }
+    }
+
+    private void ensureActiveUser(User currentUser, String message) {
+        if (currentUser == null || !currentUser.isActive()) {
+            throw new FoodRescueException(
+                    FoodRescueException.Type.FORBIDDEN,
+                    message
             );
         }
     }

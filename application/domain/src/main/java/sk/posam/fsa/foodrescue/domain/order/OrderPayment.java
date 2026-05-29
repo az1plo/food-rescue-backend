@@ -18,6 +18,24 @@ public class OrderPayment {
     private LocalDateTime transferredToBusinessAt;
     private String transferReference;
 
+    public static OrderPayment create(Long paidByUserId,
+                                      BigDecimal amount,
+                                      String currency,
+                                      String cardHolderName,
+                                      String cardLast4,
+                                      String providerReference,
+                                      String pickupToken) {
+        OrderPayment payment = new OrderPayment();
+        payment.paidByUserId = paidByUserId;
+        payment.amount = amount;
+        payment.currency = currency;
+        payment.cardHolderName = cardHolderName;
+        payment.cardLast4 = cardLast4;
+        payment.providerReference = providerReference;
+        payment.pickupToken = pickupToken;
+        return payment;
+    }
+
     public Long getPaidByUserId() {
         return paidByUserId;
     }
@@ -58,43 +76,43 @@ public class OrderPayment {
         return transferReference;
     }
 
-    public void setPaidByUserId(Long paidByUserId) {
+    void setPaidByUserId(Long paidByUserId) {
         this.paidByUserId = paidByUserId;
     }
 
-    public void setAmount(BigDecimal amount) {
+    void setAmount(BigDecimal amount) {
         this.amount = amount;
     }
 
-    public void setCurrency(String currency) {
+    void setCurrency(String currency) {
         this.currency = currency;
     }
 
-    public void setCardHolderName(String cardHolderName) {
+    void setCardHolderName(String cardHolderName) {
         this.cardHolderName = cardHolderName;
     }
 
-    public void setCardLast4(String cardLast4) {
+    void setCardLast4(String cardLast4) {
         this.cardLast4 = cardLast4;
     }
 
-    public void setProviderReference(String providerReference) {
+    void setProviderReference(String providerReference) {
         this.providerReference = providerReference;
     }
 
-    public void setPickupToken(String pickupToken) {
+    void setPickupToken(String pickupToken) {
         this.pickupToken = pickupToken;
     }
 
-    public void setPaidAt(LocalDateTime paidAt) {
+    void setPaidAt(LocalDateTime paidAt) {
         this.paidAt = paidAt;
     }
 
-    public void setTransferredToBusinessAt(LocalDateTime transferredToBusinessAt) {
+    void setTransferredToBusinessAt(LocalDateTime transferredToBusinessAt) {
         this.transferredToBusinessAt = transferredToBusinessAt;
     }
 
-    public void setTransferReference(String transferReference) {
+    void setTransferReference(String transferReference) {
         this.transferReference = transferReference;
     }
 

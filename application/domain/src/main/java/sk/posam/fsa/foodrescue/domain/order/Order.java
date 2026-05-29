@@ -6,6 +6,7 @@ import sk.posam.fsa.foodrescue.domain.offer.PickupTimeWindow;
 import sk.posam.fsa.foodrescue.domain.shared.ValidationException;
 import sk.posam.fsa.foodrescue.domain.user.User;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 public class Order {
@@ -90,51 +91,51 @@ public class Order {
         return payment;
     }
 
-    public void setId(Long id) {
+    void setId(Long id) {
         this.id = id;
     }
 
-    public void setBusinessId(Long businessId) {
+    void setBusinessId(Long businessId) {
         this.businessId = businessId;
     }
 
-    public void setUserId(Long userId) {
+    void setUserId(Long userId) {
         this.userId = userId;
     }
 
-    public void setBusinessName(String businessName) {
+    void setBusinessName(String businessName) {
         this.businessName = businessName;
     }
 
-    public void setItem(OrderItem item) {
+    void setItem(OrderItem item) {
         this.item = item;
     }
 
-    public void setPickupLocation(PickupLocation pickupLocation) {
+    void setPickupLocation(PickupLocation pickupLocation) {
         this.pickupLocation = pickupLocation;
     }
 
-    public void setPickupTimeWindow(PickupTimeWindow pickupTimeWindow) {
+    void setPickupTimeWindow(PickupTimeWindow pickupTimeWindow) {
         this.pickupTimeWindow = pickupTimeWindow;
     }
 
-    public void setStatus(OrderStatus status) {
+    void setStatus(OrderStatus status) {
         this.status = status;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
-    public void setCancelledAt(LocalDateTime cancelledAt) {
+    void setCancelledAt(LocalDateTime cancelledAt) {
         this.cancelledAt = cancelledAt;
     }
 
-    public void setPickupConfirmation(OrderPickupConfirmation pickupConfirmation) {
+    void setPickupConfirmation(OrderPickupConfirmation pickupConfirmation) {
         this.pickupConfirmation = pickupConfirmation;
     }
 
-    public void setPayment(OrderPayment payment) {
+    void setPayment(OrderPayment payment) {
         this.payment = payment;
     }
 
@@ -180,6 +181,24 @@ public class Order {
         payment = nextPayment;
     }
 
+    public void markPaid(Long paidByUserId,
+                         BigDecimal amount,
+                         String currency,
+                         String cardHolderName,
+                         String cardLast4,
+                         String providerReference,
+                         String pickupToken) {
+        markPaid(OrderPayment.create(
+                paidByUserId,
+                amount,
+                currency,
+                cardHolderName,
+                cardLast4,
+                providerReference,
+                pickupToken
+        ));
+    }
+
     public void markPickedUp(Long confirmedByUserId, String pickupToken, String transferReference) {
         require(status == OrderStatus.ACTIVE, "Only active orders can be picked up");
         require(payment != null, "Only paid orders can be picked up");
@@ -187,8 +206,7 @@ public class Order {
 
         payment.markTransferredToBusiness(transferReference);
 
-        OrderPickupConfirmation confirmation = new OrderPickupConfirmation();
-        confirmation.setConfirmedByUserId(confirmedByUserId);
+        OrderPickupConfirmation confirmation = OrderPickupConfirmation.create(confirmedByUserId);
         confirmation.prepareForCreation();
 
         pickupConfirmation = confirmation;

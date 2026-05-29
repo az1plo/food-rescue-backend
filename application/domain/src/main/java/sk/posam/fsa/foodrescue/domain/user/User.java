@@ -18,6 +18,27 @@ public class User {
     public User() {
     }
 
+    public static User create(String firstName,
+                              String lastName,
+                              String email,
+                              String password,
+                              UserRole role) {
+        User user = new User();
+        user.firstName = firstName;
+        user.lastName = lastName;
+        user.email = email;
+        user.password = password;
+        user.role = role;
+        return user;
+    }
+
+    public static User externalIdentityCandidate(String firstName,
+                                                 String lastName,
+                                                 String email,
+                                                 UserRole role) {
+        return create(firstName, lastName, email, null, role);
+    }
+
     public Long getId() {
         return id;
     }
@@ -54,19 +75,19 @@ public class User {
         this.id = id;
     }
 
-    public void setFirstName(String firstName) {
+    void setFirstName(String firstName) {
         this.firstName = firstName;
     }
 
-    public void setLastName(String lastName) {
+    void setLastName(String lastName) {
         this.lastName = lastName;
     }
 
-    public void setEmail(String email) {
+    void setEmail(String email) {
         this.email = email;
     }
 
-    public void setPassword(String password) {
+    void setPassword(String password) {
         this.password = password;
     }
 
@@ -78,7 +99,7 @@ public class User {
         this.status = status;
     }
 
-    public void setCreatedAt(LocalDateTime createdAt) {
+    void setCreatedAt(LocalDateTime createdAt) {
         this.createdAt = createdAt;
     }
 
@@ -108,6 +129,23 @@ public class User {
 
     public void markDeleted() {
         status = UserStatus.DELETED;
+    }
+
+    public void prepareForRegistration() {
+        role = UserRole.USER;
+        prepareForCreation();
+    }
+
+    public void prepareForExternalProvision(String generatedPassword) {
+        require(generatedPassword != null && !generatedPassword.isBlank(),
+                "Password is required for external identity provisioning");
+
+        password = generatedPassword.trim();
+        if (role == null) {
+            role = UserRole.USER;
+        }
+
+        prepareForCreation();
     }
 
     public void prepareForCreation() {

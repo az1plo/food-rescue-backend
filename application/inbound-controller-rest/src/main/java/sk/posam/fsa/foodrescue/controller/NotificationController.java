@@ -35,6 +35,13 @@ public class NotificationController implements NotificationsApi {
     }
 
     @Override
+    public ResponseEntity<Void> deleteNotifications() {
+        User user = currentUserDetailService.getFullCurrentUser();
+        notificationFacade.clearNotifications(user);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Override
     public ResponseEntity<NotificationResponseDto> getNotification(Long id) {
         User user = currentUserDetailService.getFullCurrentUser();
         Notification notification = notificationFacade.get(user, id);
