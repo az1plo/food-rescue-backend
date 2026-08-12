@@ -35,6 +35,32 @@ Nie je súčasťou aktuálne exponovaného UI/API flow:
 - blokovanie používateľov ako samostatný admin use case
 - reject/block business akcie vystavené vo frontend workflow
 
+## Screenshots
+
+### Home page
+![Home page](docs/screenshots/01-home.png)
+
+### Browse offers with map
+![Browse offers with map](docs/screenshots/02-browse-map.png)
+
+### Offer detail
+![Offer detail](docs/screenshots/03-offer-detail.png)
+
+### Cart and order flow
+![Cart and order flow](docs/screenshots/04-cart.png)
+
+### Pickup pass
+![Pickup pass](docs/screenshots/05-pickup-pass.png)
+
+### Business dashboard
+![Business dashboard](docs/screenshots/06-business-dashboard.png)
+
+### Business offers management
+![Business offers management](docs/screenshots/07-business-offers.png)
+
+### Create offer
+![Create offer](docs/screenshots/08-create-offer.png)
+
 ## Architektúra backendu
 
 Backend je navrhnutý ako hexagonálna aplikácia s API-first workflow.
