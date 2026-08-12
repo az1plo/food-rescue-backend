@@ -44,7 +44,7 @@ Nie je súčasťou aktuálne exponovaného UI/API flow:
 ![Browse offers with map](docs/screenshots/02-browse-map.png)
 
 ### Offer detail
-![Offer detail](docs/screenshots/03-offer-detail.png)
+![Offer detail](docs/screenshots/03-offer-details.png)
 
 ### Cart and order flow
 ![Cart and order flow](docs/screenshots/04-cart.png)
@@ -59,7 +59,7 @@ Nie je súčasťou aktuálne exponovaného UI/API flow:
 ![Business offers management](docs/screenshots/07-business-offers.png)
 
 ### Create offer
-![Create offer](docs/screenshots/08-create-offer.png)
+![Create offer](docs/screenshots/08-create-offer-review.png)
 
 ## Architektúra backendu
 
